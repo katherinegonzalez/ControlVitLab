@@ -61,10 +61,46 @@ df_empty = pd.DataFrame()
 # Initialize the app
 app = Dash(__name__)
 
+# Lista global para almacenar los nombres de los pacientes
+search_names = []
+
+# Callback para cargar los nombres de los pacientes en la barra de búsqueda
+@app.callback(
+    Output('search-input', 'options'),
+    [Input('search-input', 'search_value')]
+)
+def update_search_options(search_value):
+    global search_names
+
+    # Si la lista de nombres ya está cargada, no es necesario volver a cargarla
+    if search_names:
+        return search_names
+
+    # Realizar una consulta SQL para obtener todos los nombres de los pacientes
+    try:
+        cursor = conn.cursor()
+        sql_query_names = ("SELECT DISTINCT nombre FROM pacientes.pacientes_vit")
+        cursor.execute(sql_query_names)
+        names = cursor.fetchall()
+        # Cerrar la conexión
+        conn.close()
+        cursor.close()
+        search_names = [{'label': name['nombre'], 'value': name['nombre']} for name in names]
+        return search_names
+
+    except pymysql.Error as e:
+        print('Error de MySQL:', e)
+        return []
+
 # App layout
 app.layout = html.Div([
     html.Div(children='My First App with Data'),
-    dcc.Input(id='search-input', type='text', placeholder='Buscar...'),
+     dcc.Dropdown(
+        id='search-input',
+        options=[],
+        multi=False,
+        placeholder="Buscar por nombre de paciente..."
+    ),
     html.Button('Buscar', id='search-button', n_clicks=0),
     dash_table.DataTable(
         id='datatable',
