@@ -179,25 +179,54 @@ def update_table(n_clicks, search_value):
         # Si no se ha hecho clic en el botón o no hay un valor de búsqueda, devuelve datos vacíos o lo que sea apropiado
         # Si no hay valor de búsqueda, retornar un DataFrame vacío
         return df_empty.to_dict('records')  
+    
 
+def color_range_heart_rate(value):
+    color = 'green'
 
-def gauge_figure(value): 
+    if value >= 60 and value <=79:
+        color = 'green'
+        #riesgo_frecuencia_cardiaca = 'frecuencia cardiaca normal'
+    elif value >= 50 and value <=59:
+        color = 'orange'
+        #riesgo_frecuencia_cardiaca = 'frecuencia cardiaca riesgo medio por debajo del promedio'
+    elif value >= 80 and value <=99:
+        color = 'orange'
+        #riesgo_frecuencia_cardiaca = 'frecuencia cardiaca riesgo medio por encima del promedio'
+    elif value <=49:
+        color = 'red'
+        #riesgo_frecuencia_cardiaca = 'frecuencia cardiaca riesgo alto por debajo del promedio'
+    elif value >=100:
+        color = 'red'
+        #riesgo_frecuencia_cardiaca = 'frecuencia cardiaca riesgo alto por encima del promedio'
+
+    return color
+
+def gauge_figure(value, title, rangoAltoDebajo, rangoMedioDebajo, rangoNormal, rangoMedioEncima, rangoAltoEncima, threshold): 
     figure = go.Figure(go.Indicator(
         mode = "gauge+number",
         value = value,
-        title = {'text': "Frecuencia Cardíaca"},
+        title = {'text': title},
         domain = {'x': [0, 1], 'y': [0, 1]},
         gauge = {
-            'axis': {'range': [None, 100]},
+            'axis': {'range': [None, 200]},
             'steps' : [
-                {'range': [0, 60], 'color': "lightgray"},
-                {'range': [60, 100], 'color': "gray"}
+                {'range': rangoAltoDebajo, 'color': "#ff3933"},
+                {'range': rangoMedioDebajo, 'color': "#ff8d33"},
+                {'range': rangoNormal, 'color': "#45c212"},
+                {'range': rangoMedioEncima, 'color': "#ff8d33"},
+                {'range': rangoAltoEncima, 'color': "#ff3933"}
             ],
             'threshold' : {
-                'line': {'color': "red", 'width': 4},
+                'line': {'color': "yellow", 'width': 4},
                 'thickness': 0.75,
-                'value': 80}
-            }
+                'value': threshold},
+            'bar' : {
+                'color': "blue",
+                'thickness': 0.2
+                }
+            },
+            
     ))
 
     return figure  # Devolver la figura del gráfico de Gauge
@@ -212,8 +241,16 @@ def update_gauge_heart_rate(table_data):
         # Solo ejecutar si se hizo clic en el botón
         if heart_rate:
             print(heart_rate)
-             # Crear el objeto de figura para el gráfico de Gauge
-            return gauge_figure(heart_rate)
+            return gauge_figure(
+                heart_rate, 
+                'Frecuencia Cardíaca', 
+                [0, 50],
+                [50, 60],
+                [60, 80],
+                [80, 100],
+                [100, 200],
+                80
+            )
 
     except Exception as e:
         print('Error en Frecuencia Cardiaca: ', e)
@@ -235,7 +272,17 @@ def update_gauge_diastolic(table_data):
         if p_diastolic:
             print(p_diastolic)
              # Crear el objeto de figura para el gráfico de Gauge
-            return gauge_figure(p_diastolic)
+            return gauge_figure(
+                p_diastolic, 
+                'Presión Diastólica', 
+                [0, 50],
+                [50, 60],
+                [60, 80],
+                [80, 90],
+                [90, 200],
+                80
+            )
+        
 
     except Exception as e:
         print('Error en Presión Diastólca: ', e)
@@ -256,7 +303,16 @@ def update_gauge_sistolic(table_data):
         if p_sistolic:
             print(p_sistolic)
              # Crear el objeto de figura para el gráfico de Gauge
-            return gauge_figure(p_sistolic)
+            return gauge_figure(
+                p_sistolic, 
+                'Presión Sistólica', 
+                [0, 80],
+                [80, 90],
+                [90, 130],
+                [130, 140],
+                [140, 200],
+                130
+            )
 
     except Exception as e:
         print('Error en Presión Sistólica: ', e)
