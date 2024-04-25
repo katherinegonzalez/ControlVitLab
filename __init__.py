@@ -1,10 +1,12 @@
 import dash
 from dash import dcc
 from dash import html
-from dash.dependencies import Input, Output
+from dash.dependencies import Input, Output, State
 import dash_bootstrap_components as dbc
 from dashboard_all_patients import layout_dashboard1
-from dashboard_patient import layout_dashboard2, callbacks_dashboard2
+from dashboard_patient import layout_dashboard_patient, update_table, update_gauge_heart_rate, update_gauge_diastolic, update_gauge_sistolic, update_search_options, showOrHideFigures, update_time_series_plot_frecuencia_cardiaca, update_time_series_plot_sistolica, update_time_series_plot_diastolica
+from bd_conf import conn
+import pandas as pd
 import sys
 print(sys.executable)
 
@@ -54,11 +56,126 @@ def display_page(pathname):
     if pathname == '/dashboard1':
         return layout_dashboard1()
     elif pathname == '/dashboard2':
-        return layout_dashboard2()
+        return layout_dashboard_patient()
     else:
         return '404 Página no encontrada'
     
-callbacks_dashboard2(app)
+#--------------------------------------------
+
+try:
+    # Callback para cargar los nombres e identificaciones de los pacientes en el dropdown
+    @app.callback(
+        Output('search-input', 'options'),
+        [Input('search-input', 'search_value')]
+    )
+    def update_search_options_callback(search_value):
+        return update_search_options()
+
+    # Callback para actualizar los datos de la tabla basados en la búsqueda
+    @app.callback(
+        Output('datatable', 'data'),
+        [Input('search-button', 'n_clicks')],
+        [State('search-input', 'value')],
+    )
+    def update_table_callback(n_clicks, search_value):
+        return update_table(n_clicks, search_value)
+
+    # Callback para actualizar el gráfico de Gauge con la frecuencia cardíaca
+    @app.callback(
+        Output('gauge-graph-heart-rate', 'figure'),
+        [Input('datatable', 'data')]
+    )
+    def update_gauge_heart_rate_callback(table_data):
+        return update_gauge_heart_rate()
+
+    # Callback para actualizar el gráfico de Gauge con presión diastólica
+    @app.callback(
+        Output('gauge-graph-diastolic', 'figure'),
+        [Input('datatable', 'data')]
+    )
+    def update_gauge_diastolic_callback(table_data):
+        return update_gauge_diastolic()
+
+    # Callback para actualizar el gráfico de Gauge con presión sistólica
+    @app.callback(
+        Output('gauge-graph-sistolic', 'figure'),
+        [Input('datatable', 'data')]
+    )
+    def update_gauge_sistolic_callback(table_data):
+        return update_gauge_sistolic()
+
+    # Callback para mostrar u ocultar el gráfico de Gauge
+    @app.callback(
+        Output('gauge-graph-diastolic', 'style'),
+        [Input('datatable', 'data')]
+    )
+    def toggle_gauge_visibility_callback(table_data):
+        showOrHideFigures(table_data)
+        
+    @app.callback(
+        Output('gauge-graph-sistolic', 'style'),
+        [Input('datatable', 'data')]
+    )
+    def toggle_gauge_visibility_callback(table_data):
+        showOrHideFigures(table_data)
+
+    @app.callback(
+        Output('gauge-graph-heart-rate', 'style'),
+        [Input('datatable', 'data')]
+    )
+    def toggle_gauge_visibility_callback(table_data):
+        showOrHideFigures(table_data)
+
+    # Callback para el gráfico de tiempo de la frecuencia cardiaca
+    @app.callback(
+        Output('time-series-plot-frecuencia-cardiaca', 'figure'),
+        [Input('datatable', 'data')]
+    )
+    def update_time_series_plot_frecuencia_cardiaca_callback(table_data):
+        return update_time_series_plot_frecuencia_cardiaca()
+        
+    # Callback para el gráfico de tiempo de la presión sistólica
+    @app.callback(
+        Output('time-series-plot-sistolica', 'figure'),
+        [Input('datatable', 'data')]
+    )
+    def update_time_series_plot_sistolica_callback(table_data):
+        return update_time_series_plot_sistolica()
+        
+    # Callback para el gráfico de tiempo de la presión diastólica
+    @app.callback(
+        Output('time-series-plot-diastolica', 'figure'),
+        [Input('datatable', 'data')]
+    )
+    def update_time_series_plot_diastolica_callback(table_data):
+        return update_time_series_plot_diastolica()
+
+    # Callback para mostrar u ocultar los graficos de series
+    @app.callback(
+        Output('time-series-plot-frecuencia-cardiaca', 'style'),
+        [Input('datatable', 'data')]
+    )
+    def toggle_time_series_visibility_callback(table_data):
+        showOrHideFigures(table_data)
+
+    @app.callback(
+        Output('time-series-plot-sistolica', 'style'),
+        [Input('datatable', 'data')]
+    )
+    def toggle_time_series_visibility_callback(table_data):
+        showOrHideFigures(table_data)
+        
+    @app.callback(
+        Output('time-series-plot-diastolica', 'style'),
+        [Input('datatable', 'data')]
+    )
+    def toggle_time_series_visibility_callback(table_data):
+        showOrHideFigures(table_data)
+
+except Exception as e:
+        print('Error: ', e)
+
+
 
 if __name__ == '__main__':
     app.run_server(debug=True)

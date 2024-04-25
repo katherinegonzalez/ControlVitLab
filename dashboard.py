@@ -214,27 +214,6 @@ def update_table(n_clicks, search_value):
         return df_empty.to_dict('records')  
     
 
-def color_range_heart_rate(value):
-    color = 'green'
-
-    if value >= 60 and value <=79:
-        color = 'green'
-        #riesgo_frecuencia_cardiaca = 'frecuencia cardiaca normal'
-    elif value >= 50 and value <=59:
-        color = 'orange'
-        #riesgo_frecuencia_cardiaca = 'frecuencia cardiaca riesgo medio por debajo del promedio'
-    elif value >= 80 and value <=99:
-        color = 'orange'
-        #riesgo_frecuencia_cardiaca = 'frecuencia cardiaca riesgo medio por encima del promedio'
-    elif value <=49:
-        color = 'red'
-        #riesgo_frecuencia_cardiaca = 'frecuencia cardiaca riesgo alto por debajo del promedio'
-    elif value >=100:
-        color = 'red'
-        #riesgo_frecuencia_cardiaca = 'frecuencia cardiaca riesgo alto por encima del promedio'
-
-    return color
-
 def gauge_figure(value, title, rangoAltoDebajo, rangoMedioDebajo, rangoNormal, rangoMedioEncima, rangoAltoEncima, threshold): 
     figure = go.Figure(go.Indicator(
         mode = "gauge+number",
