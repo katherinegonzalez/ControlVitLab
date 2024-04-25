@@ -11,7 +11,7 @@ import sys
 print(sys.executable)
 
 # Utilizando Bootstrap para obtener estilos predefinidos
-app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
+app = dash.Dash(__name__, suppress_callback_exceptions=True, external_stylesheets=[dbc.themes.BOOTSTRAP])
 
 # Layout de la página
 app.layout = html.Div([
@@ -49,8 +49,8 @@ def display_page(pathname):
             ], style={'textAlign': 'center', 'margin': '50px'}),
             # Botones para los dashboards
             dbc.Row([
-                dbc.Col(dbc.Button("Búsqueda por Paciente", color="primary", href="/dashboard1")),
-                dbc.Col(dbc.Button("Ver Todos los Pacientes", color="primary", href="/dashboard2")),
+                dbc.Col(dbc.Button("Búsqueda por Paciente", color="primary", href="/dashboard2")),
+                dbc.Col(dbc.Button("Ver Todos los Pacientes", color="primary", href="/dashboard1")),
             ], style={'margin': 'auto', 'width': '50%', 'textAlign': 'center', 'marginTop': '50px'}),
         ])
     if pathname == '/dashboard1':
@@ -103,30 +103,8 @@ try:
     )
     def update_gauge_sistolic_callback(table_data):
         return update_gauge_sistolic()
-
-    # Callback para mostrar u ocultar el gráfico de Gauge
-    @app.callback(
-        Output('gauge-graph-diastolic', 'style'),
-        [Input('datatable', 'data')]
-    )
-    def toggle_gauge_visibility_callback(table_data):
-        showOrHideFigures(table_data)
-        
-    @app.callback(
-        Output('gauge-graph-sistolic', 'style'),
-        [Input('datatable', 'data')]
-    )
-    def toggle_gauge_visibility_callback(table_data):
-        showOrHideFigures(table_data)
-
-    @app.callback(
-        Output('gauge-graph-heart-rate', 'style'),
-        [Input('datatable', 'data')]
-    )
-    def toggle_gauge_visibility_callback(table_data):
-        showOrHideFigures(table_data)
-
-    # Callback para el gráfico de tiempo de la frecuencia cardiaca
+    
+      # Callback para el gráfico de tiempo de la frecuencia cardiaca
     @app.callback(
         Output('time-series-plot-frecuencia-cardiaca', 'figure'),
         [Input('datatable', 'data')]
@@ -150,27 +128,50 @@ try:
     def update_time_series_plot_diastolica_callback(table_data):
         return update_time_series_plot_diastolica()
 
+    # Callback para mostrar u ocultar el gráfico de Gauge
+    @app.callback(
+        Output('gauge-graph-diastolic', 'style'),
+        [Input('datatable', 'data')]
+    )
+    def toggle_gauge_visibility_callback(table_data):
+        return showOrHideFigures(table_data)
+        
+    @app.callback(
+        Output('gauge-graph-sistolic', 'style'),
+        [Input('datatable', 'data')]
+    )
+    def toggle_gauge_visibility_callback(table_data):
+        return showOrHideFigures(table_data)
+
+    @app.callback(
+        Output('gauge-graph-heart-rate', 'style'),
+        [Input('datatable', 'data')]
+    )
+    def toggle_gauge_visibility_callback(table_data):
+        return showOrHideFigures(table_data)
+
+
     # Callback para mostrar u ocultar los graficos de series
     @app.callback(
         Output('time-series-plot-frecuencia-cardiaca', 'style'),
         [Input('datatable', 'data')]
     )
     def toggle_time_series_visibility_callback(table_data):
-        showOrHideFigures(table_data)
+        return showOrHideFigures(table_data)
 
     @app.callback(
         Output('time-series-plot-sistolica', 'style'),
         [Input('datatable', 'data')]
     )
     def toggle_time_series_visibility_callback(table_data):
-        showOrHideFigures(table_data)
+        return showOrHideFigures(table_data)
         
     @app.callback(
         Output('time-series-plot-diastolica', 'style'),
         [Input('datatable', 'data')]
     )
     def toggle_time_series_visibility_callback(table_data):
-        showOrHideFigures(table_data)
+        return showOrHideFigures(table_data)
 
 except Exception as e:
         print('Error: ', e)
