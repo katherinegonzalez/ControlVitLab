@@ -103,15 +103,24 @@ app.layout = html.Div([
         id="loading-2",
         type="default",
         children=[
-            dcc.Graph(id='gauge-graph-heart-rate')
+            dcc.Graph(id='gauge-graph-heart-rate', style={'display': 'none'})
         ]
     ),
     dcc.Loading(
         id="loading-3",
         type="default",
         children=[
-            dcc.Graph(id='gauge-graph-diastolic'),
-            dcc.Graph(id='gauge-graph-sistolic')
+            dcc.Graph(id='gauge-graph-diastolic', style={'display': 'none'}),
+            dcc.Graph(id='gauge-graph-sistolic', style={'display': 'none'})
+        ]
+    ),
+    dcc.Loading(
+        id="loading-4",
+        type="default",
+        children=[
+            dcc.Graph(id='time-series-plot-frecuencia-cardiaca', style={'display': 'none'}),
+            dcc.Graph(id='time-series-plot-sistolica', style={'display': 'none'}),
+            dcc.Graph(id='time-series-plot-diastolica', style={'display': 'none'})
         ]
     )
 ])
@@ -120,6 +129,10 @@ app.layout = html.Div([
 heart_rate = None
 p_sistolic = None
 p_diastolic = None
+
+heart_rate_series = pd.DataFrame()
+p_sistolic_series = pd.DataFrame()
+p_diastolic_series = pd.DataFrame()
 
 # Callback para actualizar los datos de la tabla basados en la búsqueda
 @app.callback(
@@ -131,6 +144,11 @@ def update_table(n_clicks, search_value):
     global heart_rate
     global p_sistolic
     global p_diastolic
+
+    global heart_rate_series
+    global p_sistolic_series
+    global p_diastolic_series
+    
     print('entra a tabla: ',  n_clicks)
     if n_clicks > 0 and search_value:
         # Si el botón se ha clicado y hay un valor de búsqueda, realiza la búsqueda
@@ -164,6 +182,21 @@ def update_table(n_clicks, search_value):
             heart_rate = df_search['frecuencia_cardiaca'].iloc[0]
             p_sistolic = df_search['t_a_sistolica'].iloc[0]
             p_diastolic = df_search['t_a_diastolica'].iloc[0]
+
+            heart_rate_series = df_search[['frecuencia_cardiaca', 'fecha']].copy()
+            heart_rate_series.loc[:, 'fecha'] = pd.to_datetime(heart_rate_series['fecha'])
+
+            print(heart_rate_series)
+
+            p_diastolic_series = df_search[['t_a_diastolica', 'fecha']].copy()
+            p_diastolic_series.loc[:, 'fecha'] = pd.to_datetime(p_diastolic_series['fecha'])
+
+            print(p_diastolic_series)
+
+            p_sistolic_series = df_search[['t_a_sistolica', 'fecha']].copy()
+            p_sistolic_series.loc[:, 'fecha'] = pd.to_datetime(p_sistolic_series['fecha'])
+
+            print(p_sistolic_series)
 
             # Excluir la columna de frecuencia cardíaca de los datos de la tabla
             df_search = df_search.drop(columns=['frecuencia_cardiaca', 't_a_sistolica', 't_a_diastolica'])
@@ -322,6 +355,157 @@ def update_gauge_sistolic(table_data):
         # Si no se ha hecho clic en el botón, no actualizar el gráfico
         return dash.no_update
 
+
+# Callback para mostrar u ocultar el gráfico de Gauge
+@app.callback(
+    Output('gauge-graph-diastolic', 'style'),
+    [Input('datatable', 'data')]
+)
+def toggle_gauge_visibility(table_data):
+    # Si hay datos disponibles, mostrar el gráfico de Gauge
+    if table_data:
+        return {'display': 'block'}
+    else:
+        # Si no hay datos disponibles, ocultar el gráfico de Gauge
+        return {'display': 'none'}
+    
+# Callback para mostrar u ocultar el gráfico de Gauge
+@app.callback(
+    Output('gauge-graph-sistolic', 'style'),
+    [Input('datatable', 'data')]
+)
+def toggle_gauge_visibility(table_data):
+    # Si hay datos disponibles, mostrar el gráfico de Gauge
+    if table_data:
+        return {'display': 'block'}
+    else:
+        # Si no hay datos disponibles, ocultar el gráfico de Gauge
+        return {'display': 'none'}
+
+# Callback para mostrar u ocultar el gráfico de Gauge
+@app.callback(
+    Output('gauge-graph-heart-rate', 'style'),
+    [Input('datatable', 'data')]
+)
+def toggle_gauge_visibility(table_data):
+    # Si hay datos disponibles, mostrar el gráfico de Gauge
+    if table_data:
+        return {'display': 'block'}
+    else:
+        # Si no hay datos disponibles, ocultar el gráfico de Gauge
+        return {'display': 'none'}
+    
+def time_series_graph(dataFrame, tipo, title, riesgoAltoDebajo, riesgoMedioDebajo, riesgoNormal, riesgoMedioEncima, riesgoAltoEncima):
+    print(tipo, dataFrame.empty)
+    if not dataFrame.empty:
+        print(tipo)
+        # Crea el gráfico de series temporales
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(x=dataFrame['fecha'], y=dataFrame[tipo], mode='lines', name='Time Series'))
+        fig.update_layout(title=title, xaxis_title='Fecha', yaxis_title='Valor')
+    
+        # Agrega dos líneas horizontales (umbrales)
+        fig.add_hline(y=riesgoAltoEncima, line_dash='dash', line_color='red', annotation_text='Rieso Alto Por Encima del Promedio', annotation_position='top right')
+        fig.add_hline(y=riesgoMedioEncima, line_dash='dash', line_color='orange', annotation_text='Rieso Medio Por Encima del Promedio', annotation_position='top right')
+        fig.add_hline(y=riesgoNormal, line_dash='dash', line_color='green', annotation_text='Normal', annotation_position='top right')
+        fig.add_hline(y=riesgoMedioDebajo, line_dash='dash', line_color='orange', annotation_text='Rieso Medio Por Debajo del Promedio', annotation_position='top right')
+        fig.add_hline(y=riesgoAltoDebajo, line_dash='dash', line_color='red', annotation_text='Rieso Alto Por Debajo del Promedio', annotation_position='top right')
+        
+        return fig
+        
+    else:
+        return dash.no_update
+    
+
+# Callback para mostrar u ocultar el gráfico de Gauge
+@app.callback(
+    Output('time-series-plot-frecuencia-cardiaca', 'style'),
+    [Input('datatable', 'data')]
+)
+def toggle_time_series_visibility(table_data):
+    # Si hay datos disponibles, mostrar el gráfico de Gauge
+    if table_data:
+        return {'display': 'block'}
+    else:
+        # Si no hay datos disponibles, ocultar el gráfico de Gauge
+        return {'display': 'none'}
+
+# Callback para mostrar u ocultar el gráfico de Gauge
+@app.callback(
+    Output('time-series-plot-sistolica', 'style'),
+    [Input('datatable', 'data')]
+)
+def toggle_time_series_visibility(table_data):
+    # Si hay datos disponibles, mostrar el gráfico de Gauge
+    if table_data:
+        return {'display': 'block'}
+    else:
+        # Si no hay datos disponibles, ocultar el gráfico de Gauge
+        return {'display': 'none'}
+    
+# Callback para mostrar u ocultar el gráfico de Gauge
+@app.callback(
+    Output('time-series-plot-diastolica', 'style'),
+    [Input('datatable', 'data')]
+)
+def toggle_time_series_visibility(table_data):
+    # Si hay datos disponibles, mostrar el gráfico de Gauge
+    if table_data:
+        return {'display': 'block'}
+    else:
+        # Si no hay datos disponibles, ocultar el gráfico de Gauge
+        return {'display': 'none'}
+
+# Define la función de callback para actualizar el gráfico basado en la entrada del usuario
+@app.callback(
+    Output('time-series-plot-frecuencia-cardiaca', 'figure'),
+    [Input('datatable', 'data')]
+)
+def update_time_series_plot_frecuencia_cardiaca(selected_value):
+    print('p_sistolic_series', p_sistolic_series.empty)
+    print('p_diastolic_series', p_diastolic_series.empty)
+    return time_series_graph(
+        heart_rate_series, 
+        'frecuencia_cardiaca', 
+        'Gráfico de Frecuencia Cardiaca en el tiempo', 
+        20, 
+        50,
+        60, 
+        80,  
+        100)
+    
+# Define la función de callback para actualizar el gráfico basado en la entrada del usuario
+@app.callback(
+    Output('time-series-plot-sistolica', 'figure'),
+    [Input('datatable', 'data')]
+)
+def update_time_series_plot_sistolica(selected_value):
+    print('entra a callback para sistolica: ', p_sistolic_series)
+    return time_series_graph(
+        p_sistolic_series, 
+        't_a_sistolica', 
+        'Gráfico de Presión Sistólica en el tiempo', 
+        20, 
+        80,
+        90, 
+        130,  
+        140)
+    
+# Define la función de callback para actualizar el gráfico basado en la entrada del usuario
+@app.callback(
+    Output('time-series-plot-diastolica', 'figure'),
+    [Input('datatable', 'data')]
+)
+def update_time_series_plot_diastolica(selected_value):
+    return time_series_graph(
+        p_diastolic_series, 
+        't_a_diastolica', 
+        'Gráfico de Presión Diastólica en el tiempo', 
+        10, 
+        50,
+        60, 
+        80,  
+        90)
 
 # REVISAR COMO Y DONDE CERRAR LA CONEXIÓN
 #cursor.close()
