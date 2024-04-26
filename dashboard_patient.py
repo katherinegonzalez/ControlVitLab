@@ -7,6 +7,7 @@ from dash.exceptions import PreventUpdate
 import dash
 import plotly.graph_objs as go
 import pandas as pd
+from dash_bootstrap_components import Row, Col, Button, Card, CardBody
 
 # Crear un cursor para ejecutar consultas SQL
 cursor = conn.cursor()
@@ -33,14 +34,75 @@ def showOrHideFigures(data):
         # Si no hay datos disponibles, ocultar el gráfico
         return {'display': 'none'}
 
-def gauge_figure(value, title, rangoAltoDebajo, rangoMedioDebajo, rangoNormal, rangoMedioEncima, rangoAltoEncima, threshold): 
+def heart_rate_color(value):
+    color = '#45c212'
+    if value >= 60 and value <=79:
+        #'frecuencia cardiaca normal'
+        color = '#45c212'
+    elif value >= 50 and value <=59:
+        #'frecuencia cardiaca riesgo medio por debajo del promedio'
+        color = '#ff8d33'
+    elif value >= 80 and value <=99:
+        #'frecuencia cardiaca riesgo medio por encima del promedio'
+        color = '#ff8d33'
+    elif value <=49:
+        #'frecuencia cardiaca riesgo alto por debajo del promedio'
+        color = '#ff3933'
+    elif value >=100:
+        #'frecuencia cardiaca riesgo alto por encima del promedio'
+        color = '#ff3933'
+    return color
+
+def sistolic_color(value):
+    color = '#45c212'
+    if value >= 90 and value <=129:
+        #'presión sistólica normal'
+        color = '#45c212'
+    elif value >= 80 and value <=89:
+        #'presión sistólica  riesgo medio por debajo del promedio'
+        color = '#ff8d33'
+    elif value >= 130 and value <=139:
+        #'presión sistólica riesgo medio por encima del promedio'
+        color = '#ff8d33'
+    elif value <=79:
+        #'presión sistólica riesgo alto por debajo del promedio'
+        color = '#ff3933'
+    elif value >=140:
+        #'presión sistólica riesgo alto por encima del promedio'
+        color = '#ff3933'
+    return color
+
+
+def diastolic_color(value):
+    color = '#45c212'
+    if value >= 60 and value <=79:
+        #'presión sistólica normal'
+        color = '#45c212'
+    elif value >= 50 and value <=59:
+        #'presión sistólica  riesgo medio por debajo del promedio'
+        color = '#ff8d33'
+    elif value >= 80 and value <=89:
+        #'presión sistólica riesgo medio por encima del promedio'
+        color = '#ff8d33'
+    elif value <=49:
+        #'presión sistólica riesgo alto por debajo del promedio'
+        color = '#ff3933'
+    elif value >=90:
+        #'presión sistólica riesgo alto por encima del promedio'
+        color = '#ff3933'
+    return color
+
+
+
+def gauge_figure(value, title, rangoAltoDebajo, rangoMedioDebajo, rangoNormal, rangoMedioEncima, rangoAltoEncima, range, color): 
     figure = go.Figure(go.Indicator(
         mode = "gauge+number",
         value = value,
         title = {'text': title},
-        domain = {'x': [0, 1], 'y': [0, 1]},
+        domain = {'x': [0, 1], 'y': [0.3, 1]},
+        # domain = {'x': [0, 1], 'y': [0, 1]},
         gauge = {
-            'axis': {'range': [None, 200]},
+            'axis': {'range': range, 'dtick': 10},
             'steps' : [
                 {'range': rangoAltoDebajo, 'color': "#ff3933"},
                 {'range': rangoMedioDebajo, 'color': "#ff8d33"},
@@ -48,15 +110,20 @@ def gauge_figure(value, title, rangoAltoDebajo, rangoMedioDebajo, rangoNormal, r
                 {'range': rangoMedioEncima, 'color': "#ff8d33"},
                 {'range': rangoAltoEncima, 'color': "#ff3933"}
             ],
-            'threshold' : {
-                'line': {'color': "yellow", 'width': 4},
-                'thickness': 0.75,
-                'value': threshold},
+            # 'threshold' : {
+            #    'line': {'color': "yellow", 'width': 4},
+            #    'thickness': 0.75,
+            #    'value': threshold},
             'bar' : {
-                'color': "blue",
-                'thickness': 0.2
-                }
+                'color': color,
+                'thickness': 0.7, # Ajusta el grosor de la barra
+                'line': {'color': 'black', 'width': 0.6}  # Color y ancho del borde
+                },
+
             },
+        number = {'font': { 'color': color}},
+        
+            
             
     ))
 
@@ -191,8 +258,9 @@ def update_gauge_heart_rate():
                 [50, 60],
                 [60, 80],
                 [80, 100],
-                [100, 200],
-                80
+                [100, 120],
+                [40, 120],
+                heart_rate_color(heart_rate)
             )
 
     except Exception as e:
@@ -216,8 +284,9 @@ def update_gauge_diastolic():
                 [50, 60],
                 [60, 80],
                 [80, 90],
-                [90, 200],
-                80
+                [90, 120],
+                [40, 120],
+                diastolic_color(p_diastolic)
             )
         
 
@@ -242,8 +311,9 @@ def update_gauge_sistolic():
                 [80, 90],
                 [90, 130],
                 [130, 140],
-                [140, 200],
-                130
+                [140, 160],
+                [60, 160],
+                sistolic_color(p_sistolic)
             )
 
     except Exception as e:
@@ -290,7 +360,7 @@ def update_time_series_plot_diastolica():
         80,  
         90)
 
-def layout_dashboard_patient():
+def layout_dashboard_patient_1():
     return html.Div([
         html.Div(children='ControlVit Lab'),
         dcc.Dropdown(
@@ -339,3 +409,88 @@ def layout_dashboard_patient():
             ]
         )
     ])
+
+def layout_dashboard_patient(): 
+    return html.Div([
+    html.Div(children='ControlVit Lab', className="mb-3"),  # Título
+
+    # Barra de búsqueda y botón
+    Row([
+        Col([
+            dcc.Dropdown(
+                id='search-input',
+                options=[],
+                multi=False,
+                placeholder="Buscar por nombre o identificación de paciente..."
+            ),
+            Button('Buscar', id='search-button', n_clicks=0, className="btn btn-primary mt-2 btn-block"),
+        ], width=12),
+    ], className="mb-3"),
+
+    # Tabla
+    dcc.Loading(
+        id="loading-1",
+        type="default",
+        children=[
+            dash_table.DataTable(
+                id='datatable',
+                data=df_empty.to_dict('records'),
+                page_size=5
+            ),
+        ]
+    ),
+
+    # Gráficos de Gauge y panel de presión
+    Row([
+        Col([
+            dcc.Loading(
+                id="loading-2",
+                type="default",
+                children=[
+                    dcc.Graph(id='gauge-graph-heart-rate', style={'display': 'none'})
+                ]
+            ),
+        ], width=4),
+        Col([
+            Card([
+                CardBody([
+                    Row([
+                        Col([
+                            dcc.Loading(
+                                id="loading-3",
+                                type="default",
+                                children=[
+                                    dcc.Graph(id='gauge-graph-diastolic', style={'display': 'none'}),
+                                ]
+                            ),
+                        ], width=6),
+                        Col([
+                            dcc.Loading(
+                                id="loading-4",
+                                type="default",
+                                children=[
+                                    dcc.Graph(id='gauge-graph-sistolic', style={'display': 'none'}),
+                                ]
+                            ),
+                        ], width=6),
+                    ]),
+                ]),
+            ]),
+        ], width=8),
+    ], className="mb-3"),
+
+    # Gráficos de tiempo
+    Row([
+        Col([
+            dcc.Loading(
+                id="loading-5",
+                type="default",
+                children=[
+                    dcc.Graph(id='time-series-plot-frecuencia-cardiaca', style={'display': 'none'}),
+                    dcc.Graph(id='time-series-plot-sistolica', style={'display': 'none'}),
+                    dcc.Graph(id='time-series-plot-diastolica', style={'display': 'none'})
+                ]
+            ),
+        ], width=12),
+    ]),
+    ], className="container-fluid")
