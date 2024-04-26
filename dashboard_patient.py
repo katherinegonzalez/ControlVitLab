@@ -109,10 +109,10 @@ def gauge_figure(value, title, rangoAltoDebajo, rangoMedioDebajo, rangoNormal, r
                 {'range': rangoMedioEncima, 'color': "#ff8d33"},
                 {'range': rangoAltoEncima, 'color': "#ff3933"}
             ],
-            # 'threshold' : {
-            #    'line': {'color': "yellow", 'width': 4},
-            #    'thickness': 0.75,
-            #    'value': threshold},
+            'threshold' : {
+                'line': {'color': "black", 'width': 4},
+                'thickness': 0.8,
+                'value': value},
             'bar' : {
                 'color': color,
                 'thickness': 0.7, # Ajusta el grosor de la barra
@@ -494,6 +494,9 @@ def layout_dashboard_patient():
                 'fontFamily': 'Arial, sans-serif',  
                 'fontWeight': '600'
                 },
+                style_cell= {
+                 'textAlign': 'left',
+                }
             ),
         ]
     ),
