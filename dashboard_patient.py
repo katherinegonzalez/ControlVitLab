@@ -72,7 +72,6 @@ def sistolic_color(value):
         color = '#ff3933'
     return color
 
-
 def diastolic_color(value):
     color = '#45c212'
     if value >= 60 and value <=79:
@@ -135,7 +134,7 @@ def time_series_graph(dataFrame, tipo, title, riesgoAltoDebajo, riesgoMedioDebaj
         print(tipo)
         # Crea el gráfico de series temporales
         fig = go.Figure()
-        fig.add_trace(go.Scatter(x=dataFrame['fecha'], y=dataFrame[tipo], mode='lines', name='Time Series'))
+        fig.add_trace(go.Scatter(x=dataFrame['Fecha'], y=dataFrame[tipo], mode='lines', name='Time Series'))
         fig.update_layout(title=title, xaxis_title='Fecha', yaxis_title='Valor')
     
         # Agrega dos líneas horizontales (umbrales)
@@ -189,12 +188,20 @@ def update_table(n_clicks, search_value):
             # Ejecutar una consulta SQL
             # cursor = conn.cursor()
             sql_query_search = ("""
-                SELECT fecha, frecuencia_cardiaca, t_a_sistolica, t_a_diastolica, identificacion, nombre, fec_nacimiento, sexo, peso, talla, (peso * 10000) / (talla*talla) AS IMC, 
+                SELECT 
+                    fecha AS 'Fecha', 
+                    frecuencia_cardiaca, t_a_sistolica, t_a_diastolica, 
+                    identificacion AS 'Identificación', 
+                    nombre AS 'Nombre', 
+                    fec_nacimiento AS 'Fecha de Nacimiento', 
+                    TIMESTAMPDIFF(YEAR, fec_nacimiento, CURDATE()) AS 'Edad',
+                    sexo, peso, talla, 
+                    ROUND((peso * 10000) / (talla*talla), 2) AS IMC,
                 CASE 
                     WHEN (peso * 10000) / (talla*talla) >= 30 THEN 'Obesidad' 
                     WHEN (peso * 10000) / (talla*talla) >= 25 THEN 'Sobrepeso' 
                     ELSE 'Saludable' 
-                END AS 'Estado de IMC' 
+                END AS 'Estado de IMC'
                 FROM pacientes.pacientes_vit 
                 WHERE id_cia = %s
                 ORDER BY fecha DESC
@@ -216,26 +223,28 @@ def update_table(n_clicks, search_value):
             p_sistolic = df_search['t_a_sistolica'].iloc[0]
             p_diastolic = df_search['t_a_diastolica'].iloc[0]
 
-            heart_rate_series = df_search[['frecuencia_cardiaca', 'fecha']].copy()
-            heart_rate_series.loc[:, 'fecha'] = pd.to_datetime(heart_rate_series['fecha'])
+            heart_rate_series = df_search[['frecuencia_cardiaca', 'Fecha']].copy()
+            heart_rate_series.loc[:, 'Fecha'] = pd.to_datetime(heart_rate_series['Fecha'])
 
             print(heart_rate_series)
 
-            p_diastolic_series = df_search[['t_a_diastolica', 'fecha']].copy()
-            p_diastolic_series.loc[:, 'fecha'] = pd.to_datetime(p_diastolic_series['fecha'])
+            p_diastolic_series = df_search[['t_a_diastolica', 'Fecha']].copy()
+            p_diastolic_series.loc[:, 'Fecha'] = pd.to_datetime(p_diastolic_series['Fecha'])
 
             print(p_diastolic_series)
 
-            p_sistolic_series = df_search[['t_a_sistolica', 'fecha']].copy()
-            p_sistolic_series.loc[:, 'fecha'] = pd.to_datetime(p_sistolic_series['fecha'])
+            p_sistolic_series = df_search[['t_a_sistolica', 'Fecha']].copy()
+            p_sistolic_series.loc[:, 'Fecha'] = pd.to_datetime(p_sistolic_series['Fecha'])
 
             print(p_sistolic_series)
 
             # Excluir la columna de frecuencia cardíaca de los datos de la tabla
             df_search = df_search.drop(columns=['frecuencia_cardiaca', 't_a_sistolica', 't_a_diastolica'])
 
+            df_search = df_search.iloc[[0]].copy()
+
             # Devolver los datos del DataFrame de búsqueda
-            return df_search.to_dict('records')
+            return df_search.to_dict('records') # Tomar solo el primer registro con iloc
         
         except pymysql.Error as e:
             print('Error de MySQL: ', e)
@@ -361,6 +370,28 @@ def update_time_series_plot_diastolica():
         90)
 
 def layout_dashboard_patient_1():
+
+    # Establecer los estilos de la tabla
+    table_style = {
+        'textAlign': 'right',  # Alinear texto a la derecha
+        'backgroundColor': 'lightblue'  # Fondo de la cabecera
+    }
+
+    data_conditional = [
+        {
+            'if': {'column_id': 'Estado de IMC', 'filter_query': '{Estado de IMC} = "Saludable"'},
+            'color': 'green'  # Color verde para estado saludable
+        },
+        {
+            'if': {'column_id': 'Estado de IMC', 'filter_query': '{Estado de IMC} = "Sobrepeso"'},
+            'color': 'orange'  # Color naranja para sobrepeso
+        },
+        {
+            'if': {'column_id': 'Estado de IMC', 'filter_query': '{Estado de IMC} = "Obesidad"'},
+            'color': 'red'  # Color rojo para obesidad
+        }
+    ]
+
     return html.Div([
         html.Div(children='ControlVit Lab'),
         dcc.Dropdown(
@@ -377,8 +408,11 @@ def layout_dashboard_patient_1():
             children=[
                 dash_table.DataTable(
                 id='datatable',
-                data=df_empty.to_dict('records') ,
-                page_size=5
+                data=df_empty.to_dict('records'),
+                columns=[{'name': i, 'id': i} for i in df_empty.columns],
+                page_size=5,
+                style_table=table_style,
+                style_data_conditional=data_conditional
             ),
             ]
         ),
@@ -411,8 +445,23 @@ def layout_dashboard_patient_1():
     ])
 
 def layout_dashboard_patient(): 
+
+    data_conditional = [
+        {
+            'if': {'column_id': 'Estado de IMC', 'filter_query': '{Estado de IMC} = "Saludable"'},
+            'color': 'green'  # Color verde para estado saludable
+        },
+        {
+            'if': {'column_id': 'Estado de IMC', 'filter_query': '{Estado de IMC} = "Sobrepeso"'},
+            'backgroundColor': 'orange'  # Color naranja para sobrepeso
+        },
+        {
+            'if': {'column_id': 'Estado de IMC', 'filter_query': '{Estado de IMC} = "Obesidad"'},
+            'color': 'red'  # Color rojo para obesidad
+        }]
+
     return html.Div([
-    html.Div(children='ControlVit Lab', className="mb-3"),  # Título
+    # html.Div(children='ControlVit Lab', className="mb-3"),  # Título
 
     # Barra de búsqueda y botón
     Row([
@@ -423,9 +472,11 @@ def layout_dashboard_patient():
                 multi=False,
                 placeholder="Buscar por nombre o identificación de paciente..."
             ),
-            Button('Buscar', id='search-button', n_clicks=0, className="btn btn-primary mt-2 btn-block"),
-        ], width=12),
-    ], className="mb-3"),
+        ], width=10),
+        Col([
+            Button('Buscar', id='search-button', n_clicks=0, className="btn btn-primary btn-block", style={"width": "100%"}),
+        ], width=2),
+    ], className="mb-3", style={"margin-top": "30px", "margin-bottom": "30px"} ),
 
     # Tabla
     dcc.Loading(
@@ -435,7 +486,14 @@ def layout_dashboard_patient():
             dash_table.DataTable(
                 id='datatable',
                 data=df_empty.to_dict('records'),
-                page_size=5
+                page_size=5,
+                style_data_conditional=data_conditional,
+                style_header = {
+                'textAlign': 'left',  # Alinear texto a la derecha
+                'backgroundColor': '#0d6efd99',  # Fondo de la cabecera
+                'fontFamily': 'Arial, sans-serif',  
+                'fontWeight': '600'
+                },
             ),
         ]
     ),
@@ -452,32 +510,28 @@ def layout_dashboard_patient():
             ),
         ], width=4),
         Col([
-            Card([
-                CardBody([
-                    Row([
-                        Col([
-                            dcc.Loading(
-                                id="loading-3",
-                                type="default",
-                                children=[
-                                    dcc.Graph(id='gauge-graph-diastolic', style={'display': 'none'}),
-                                ]
-                            ),
-                        ], width=6),
-                        Col([
-                            dcc.Loading(
-                                id="loading-4",
-                                type="default",
-                                children=[
-                                    dcc.Graph(id='gauge-graph-sistolic', style={'display': 'none'}),
-                                ]
-                            ),
-                        ], width=6),
-                    ]),
-                ]),
+            Row([
+                Col([
+                    dcc.Loading(
+                        id="loading-3",
+                        type="default",
+                        children=[
+                            dcc.Graph(id='gauge-graph-diastolic', style={'display': 'none'}),
+                        ]
+                    ),
+                ], width=6),
+                Col([
+                    dcc.Loading(
+                        id="loading-4",
+                        type="default",
+                        children=[
+                            dcc.Graph(id='gauge-graph-sistolic', style={'display': 'none'}),
+                        ]
+                    ),
+                ], width=6),
             ]),
-        ], width=8),
-    ], className="mb-3"),
+            ], width=8),
+    ], className="mb-3", style={"margin-top": "30px"}),
 
     # Gráficos de tiempo
     Row([

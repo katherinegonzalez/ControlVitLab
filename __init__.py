@@ -11,7 +11,7 @@ import sys
 print(sys.executable)
 
 # Utilizando Bootstrap para obtener estilos predefinidos
-app = dash.Dash(__name__, suppress_callback_exceptions=True, external_stylesheets=[dbc.themes.BOOTSTRAP])
+app = dash.Dash(__name__, suppress_callback_exceptions=True, external_stylesheets=[dbc.themes.BOOTSTRAP, 'tableStyles.css'])
 
 # Layout de la página
 app.layout = html.Div([

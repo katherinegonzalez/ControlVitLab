@@ -1,0 +1,12 @@
+/* styles.css */
+
+body {
+    background-color: red
+}
+
+/* Estilos para la tabla */
+.dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner th  {
+    text-align: left;  /* Alinear texto a la derecha */
+    background-color: lightblue;  /* Fondo de la cabecera */
+    font-family: Arial, sans-serif;  /* Fuente */
+}
