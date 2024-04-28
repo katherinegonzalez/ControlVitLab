@@ -92,7 +92,9 @@ def diastolic_color(value):
     return color
 
 
-
+# Configurar el margen con un diccionario
+margin_dict = {'t': 60, 'b': 0, 'l': 30, 'r': 30}  # Establece 10 píxeles para todos los márgenes
+layout = {'margin': margin_dict, 'height': 350} #cambiar este heght de acuerd al responsive - por defecto es 450
 def gauge_figure(value, title, rangoAltoDebajo, rangoMedioDebajo, rangoNormal, rangoMedioEncima, rangoAltoEncima, range, color): 
     figure = go.Figure(go.Indicator(
         mode = "gauge+number",
@@ -120,11 +122,10 @@ def gauge_figure(value, title, rangoAltoDebajo, rangoMedioDebajo, rangoNormal, r
                 },
 
             },
-        number = {'font': { 'color': color}},
-        
-            
-            
-    ))
+        number = {'font': { 'color': color}},         
+    ), layout=layout)
+
+    figure.layout.autosize = True
 
     return figure  # Devolver la figura del gráfico de Gauge
   
@@ -262,7 +263,7 @@ def update_gauge_heart_rate():
             print(heart_rate)
             return gauge_figure(
                 heart_rate, 
-                'Frecuencia Cardíaca', 
+                'BPM', 
                 [0, 50],
                 [50, 60],
                 [60, 80],
@@ -288,7 +289,7 @@ def update_gauge_diastolic():
              # Crear el objeto de figura para el gráfico de Gauge
             return gauge_figure(
                 p_diastolic, 
-                'Presión Diastólica', 
+                'Diastólica', 
                 [0, 50],
                 [50, 60],
                 [60, 80],
@@ -315,7 +316,7 @@ def update_gauge_sistolic():
              # Crear el objeto de figura para el gráfico de Gauge
             return gauge_figure(
                 p_sistolic, 
-                'Presión Sistólica', 
+                'Sistólica', 
                 [0, 80],
                 [80, 90],
                 [90, 130],
@@ -369,81 +370,6 @@ def update_time_series_plot_diastolica():
         80,  
         90)
 
-def layout_dashboard_patient_1():
-
-    # Establecer los estilos de la tabla
-    table_style = {
-        'textAlign': 'right',  # Alinear texto a la derecha
-        'backgroundColor': 'lightblue'  # Fondo de la cabecera
-    }
-
-    data_conditional = [
-        {
-            'if': {'column_id': 'Estado de IMC', 'filter_query': '{Estado de IMC} = "Saludable"'},
-            'color': 'green'  # Color verde para estado saludable
-        },
-        {
-            'if': {'column_id': 'Estado de IMC', 'filter_query': '{Estado de IMC} = "Sobrepeso"'},
-            'color': 'orange'  # Color naranja para sobrepeso
-        },
-        {
-            'if': {'column_id': 'Estado de IMC', 'filter_query': '{Estado de IMC} = "Obesidad"'},
-            'color': 'red'  # Color rojo para obesidad
-        }
-    ]
-
-    return html.Div([
-        html.Div(children='ControlVit Lab'),
-        dcc.Dropdown(
-            id='search-input',
-            options=[],
-            multi=False,
-            placeholder="Buscar por nombre o identificación de paciente..."
-        ),
-        html.Button('Buscar', id='search-button', n_clicks=0),
-        # Figura 1: Un gráfico que se renderiza inmediatamente
-        dcc.Loading(
-            id="loading-1",
-            type="default",
-            children=[
-                dash_table.DataTable(
-                id='datatable',
-                data=df_empty.to_dict('records'),
-                columns=[{'name': i, 'id': i} for i in df_empty.columns],
-                page_size=5,
-                style_table=table_style,
-                style_data_conditional=data_conditional
-            ),
-            ]
-        ),
-        dcc.Input(id='frecuencia-cardiaca', type='text', value='', style={'display': 'none'}),
-        # Figura 2: Un gráfico que se renderiza después de un retraso simulado
-        dcc.Loading(
-            id="loading-2",
-            type="default",
-            children=[
-                dcc.Graph(id='gauge-graph-heart-rate', style={'display': 'none'})
-            ]
-        ),
-        dcc.Loading(
-            id="loading-3",
-            type="default",
-            children=[
-                dcc.Graph(id='gauge-graph-diastolic', style={'display': 'none'}),
-                dcc.Graph(id='gauge-graph-sistolic', style={'display': 'none'})
-            ]
-        ),
-        dcc.Loading(
-            id="loading-4",
-            type="default",
-            children=[
-                dcc.Graph(id='time-series-plot-frecuencia-cardiaca', style={'display': 'none'}),
-                dcc.Graph(id='time-series-plot-sistolica', style={'display': 'none'}),
-                dcc.Graph(id='time-series-plot-diastolica', style={'display': 'none'})
-            ]
-        )
-    ])
-
 def layout_dashboard_patient(): 
 
     data_conditional = [
@@ -453,7 +379,7 @@ def layout_dashboard_patient():
         },
         {
             'if': {'column_id': 'Estado de IMC', 'filter_query': '{Estado de IMC} = "Sobrepeso"'},
-            'backgroundColor': 'orange'  # Color naranja para sobrepeso
+            'color': 'orange'  # Color naranja para sobrepeso
         },
         {
             'if': {'column_id': 'Estado de IMC', 'filter_query': '{Estado de IMC} = "Obesidad"'},
@@ -504,15 +430,17 @@ def layout_dashboard_patient():
     # Gráficos de Gauge y panel de presión
     Row([
         Col([
+            html.H4(children='Frecuencia Cardiaca', className="mb-3", style={'text-align': 'center'}), 
             dcc.Loading(
                 id="loading-2",
                 type="default",
                 children=[
-                    dcc.Graph(id='gauge-graph-heart-rate', style={'display': 'none'})
+                    dcc.Graph(id='gauge-graph-heart-rate', style={'display': 'none'}, config={'responsive': True})
                 ]
             ),
-        ], width=4),
+        ], width=4, style={'border': '1px solid black', 'padding': '20px 12px'}),
         Col([
+            html.H4(children='Presión mm[Hg]', className="mb-3", style={'text-align': 'center'}), 
             Row([
                 Col([
                     dcc.Loading(
@@ -533,8 +461,8 @@ def layout_dashboard_patient():
                     ),
                 ], width=6),
             ]),
-            ], width=8),
-    ], className="mb-3", style={"margin-top": "30px"}),
+        ], width=8, style={'border': '1px solid black', 'padding': '20px 12px'}),
+    ], className="mb-3", style={"margin": "30px 10px"}),
 
     # Gráficos de tiempo
     Row([
