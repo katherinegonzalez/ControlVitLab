@@ -4,7 +4,7 @@ from dash import html
 from dash.dependencies import Input, Output, State
 import dash_bootstrap_components as dbc
 from dashboard_all_patients import layout_dashboard1
-from dashboard_patient import layout_dashboard_patient, update_table, update_gauge_heart_rate, update_gauge_diastolic, update_gauge_sistolic, update_search_options, showOrHideFigures, update_time_series_plot_frecuencia_cardiaca, update_time_series_plot_sistolica, update_time_series_plot_diastolica
+from dashboard_patient import layout_dashboard_patient, update_table, update_gauge_heart_rate, update_gauge_diastolic, update_gauge_sistolic, update_search_options, showOrHideFigures, update_time_series_plot_frecuencia_cardiaca, update_time_series_plot_sistolica, update_time_series_plot_diastolica, get_available_dates
 from bd_conf import conn
 import pandas as pd
 import sys
@@ -78,7 +78,7 @@ try:
         [State('search-input', 'value')],
     )
     def update_table_callback(n_clicks, search_value):
-        return update_table(n_clicks, search_value)
+        return update_table(n_clicks, search_value, 10)
 
     # Callback para actualizar el gráfico de Gauge con la frecuencia cardíaca
     @app.callback(
@@ -104,30 +104,44 @@ try:
     def update_gauge_sistolic_callback(table_data):
         return update_gauge_sistolic()
     
-      # Callback para el gráfico de tiempo de la frecuencia cardiaca
+    # Callback para el gráfico de tiempo de la frecuencia cardiaca
     @app.callback(
         Output('time-series-plot-frecuencia-cardiaca', 'figure'),
-        [Input('datatable', 'data')]
+        [Input('heart-rate-button', 'n_clicks')],
+        [State('radio-buttons', 'value')],
+        [State('date-picker-range', 'start_date')],
+        [State('date-picker-range', 'end_date')],
+        [State('search-input', 'value')]
     )
-    def update_time_series_plot_frecuencia_cardiaca_callback(table_data):
-        return update_time_series_plot_frecuencia_cardiaca()
-        
+    def update_time_series_plot_frecuencia_cardiaca_callback(n_clicks, type_value, start_date, end_date, search_value):
+        return update_time_series_plot_frecuencia_cardiaca(n_clicks, type_value, start_date, end_date, search_value)
     # Callback para el gráfico de tiempo de la presión sistólica
+    
     @app.callback(
         Output('time-series-plot-sistolica', 'figure'),
-        [Input('datatable', 'data')]
+        [Input('heart-rate-button', 'n_clicks')],
+        [Input('time-series-plot-frecuencia-cardiaca', 'figure')],
+        [State('radio-buttons', 'value')],
+        [State('date-picker-range', 'start_date')],
+        [State('date-picker-range', 'end_date')],
+        [State('search-input', 'value')]
     )
-    def update_time_series_plot_sistolica_callback(table_data):
-        return update_time_series_plot_sistolica()
-        
+    def update_time_series_plot_sistolica_callback(n_clicks, figure, type_value, start_date, end_date, search_value):
+        return update_time_series_plot_sistolica(n_clicks, type_value, start_date, end_date, search_value)
+    
     # Callback para el gráfico de tiempo de la presión diastólica
     @app.callback(
         Output('time-series-plot-diastolica', 'figure'),
-        [Input('datatable', 'data')]
+        [Input('heart-rate-button', 'n_clicks')],
+        [Input('time-series-plot-sistolica', 'figure')],
+        [State('radio-buttons', 'value')],
+        [State('date-picker-range', 'start_date')],
+        [State('date-picker-range', 'end_date')],
+        [State('search-input', 'value')]
     )
-    def update_time_series_plot_diastolica_callback(table_data):
-        return update_time_series_plot_diastolica()
-
+    def update_time_series_plot_diastolica_callback(n_clicks, figure, type_value, start_date, end_date, search_value):
+        return update_time_series_plot_diastolica(n_clicks, type_value, start_date, end_date, search_value)
+    
     # Callback para mostrar u ocultar el gráfico de Gauge
     @app.callback(
         Output('gauge-graph-diastolic', 'style'),
@@ -150,7 +164,22 @@ try:
     def toggle_gauge_visibility_callback(table_data):
         return showOrHideFigures(table_data)
 
-
+    # Callback para actualizar date picker
+    @app.callback(
+        Output('date-picker-range', 'style'),
+        [Input('datatable', 'data')]
+    )
+    def toggle_gauge_visibility_callback(table_data):
+        return showOrHideFigures(table_data)
+    
+    @app.callback(
+        Output('date-picker-range', 'dates'),
+        [Input('datatable', 'data')],
+        [State('search-input', 'value')],
+    )
+    def update_date_picker(data_table, search_value):
+        return get_available_dates(data_table,search_value)
+        
     # Callback para mostrar u ocultar los graficos de series
     @app.callback(
         Output('time-series-plot-frecuencia-cardiaca', 'style'),
