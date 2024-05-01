@@ -70,7 +70,7 @@ try:
     )
     def update_search_options_callback(search_value):
         return update_search_options()
-
+    
     # Callback para actualizar los datos de la tabla basados en la búsqueda
     @app.callback(
         Output('datatable', 'data'),
@@ -79,6 +79,14 @@ try:
     )
     def update_table_callback(n_clicks, search_value):
         return update_table(n_clicks, search_value)
+    
+     # Callback para mostrar 
+    @app.callback(
+        Output('container', 'style'),
+        [Input('datatable', 'data')]
+    )
+    def show_callback(table_data):
+        return showOrHideFigures(table_data)
 
     # Callback para actualizar el gráfico de Gauge con la frecuencia cardíaca
     @app.callback(

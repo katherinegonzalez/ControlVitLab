@@ -623,113 +623,114 @@ def layout_dashboard_patient():
             ]
         ),
         # Gráficos de Gauge  de frecuencia y panel de presión
-        Row([
-            Col([
-                html.H4(children='Frecuencia Cardiaca', className="mb-3", style={'text-align': 'center'}), 
-                dcc.Loading(
-                    id="loading-2",
-                    type="default",
-                    children=[
-                        dcc.Graph(id='gauge-graph-heart-rate', style={'display': 'none'}, config={'responsive': True})
-                    ]
-                ),
-            ], width=4, style={'border': '1px solid black', 'padding': '20px 12px'}),
-            Col([
-                html.H4(children='Presión mm[Hg]', className="mb-3", style={'text-align': 'center'}), 
-                Row([
-                    Col([
-                        dcc.Loading(
-                            id="loading-3",
-                            type="default",
-                            children=[
-                                dcc.Graph(id='gauge-graph-diastolic', style={'display': 'none'}),
-                            ]
-                        ),
-                    ], width=6),
-                    Col([
-                        dcc.Loading(
-                            id="loading-4",
-                            type="default",
-                            children=[
-                                dcc.Graph(id='gauge-graph-sistolic', style={'display': 'none'}),
-                            ]
-                        ),
-                    ], width=6),
-                ]),
-            ], width=8, style={'border': '1px solid black', 'padding': '20px 12px'}),
-        ], className="mb-3", style={"margin": "30px 10px"}),
-        Row([
-            Col([
-               
-                Row([
-                    Col([
-                        html.Div(style={'background-color': color['color'], 'height': '20px', 'width': '20px'})
-                    ], width=2),
-                    Col([ 
-                        html.Div(color['text'])
-                    ], width=10),
+        html.Div([
+            Row([
+                Col([
+                    html.H4(children='Frecuencia Cardiaca', className="mb-3", style={'text-align': 'center'}), 
+                    dcc.Loading(
+                        id="loading-2",
+                        type="default",
+                        children=[
+                            dcc.Graph(id='gauge-graph-heart-rate', style={'display': 'none'}, config={'responsive': True})
+                        ]
+                    ),
+                ], width=4, style={'border': '1px solid black', 'padding': '20px 12px'}),
+                Col([
+                    html.H4(children='Presión mm[Hg]', className="mb-3", style={'text-align': 'center'}), 
+                    Row([
+                        Col([
+                            dcc.Loading(
+                                id="loading-3",
+                                type="default",
+                                children=[
+                                    dcc.Graph(id='gauge-graph-diastolic', style={'display': 'none'}),
+                                ]
+                            ),
+                        ], width=6),
+                        Col([
+                            dcc.Loading(
+                                id="loading-4",
+                                type="default",
+                                children=[
+                                    dcc.Graph(id='gauge-graph-sistolic', style={'display': 'none'}),
+                                ]
+                            ),
+                        ], width=6),
+                    ]),
+                ], width=8, style={'border': '1px solid black', 'padding': '20px 12px'}),
+            ], className="mb-3", style={"margin": "30px 10px", }),
+            Row([
+                Col([
+                
+                    Row([
+                        Col([
+                            html.Div(style={'background-color': color['color'], 'height': '20px', 'width': '20px'})
+                        ], width=2),
+                        Col([ 
+                            html.Div(color['text'])
+                        ], width=10),
+                
+                    ])
             
-                ])
-         
-            for color in color_info
-            ], width=4, style={'border': '1px solid black', 'padding': '20px 12px'})
-        ], className="mb-3", style={"margin": "30px 10px"}),
-  
-        # Date Picker y Radio Button
-        Row([
-            html.H4(children='Seguimiento Continuo de los datos', className="mb-3"), 
-            html.P(children='A continuación, seleccione el rango de fecha y la agrupación de datos (Anual, Diario o Mensual) que desea observar:', className="mb-3"), 
-            Col([
-                dcc.DatePickerRange(
-                id='date-picker-range',
-                start_date_placeholder_text="Fecha de inicio",
-                end_date_placeholder_text="Fecha de fin",
-                display_format='MM/DD/YYYY'
-                )
-            ], width=4),
-            Col([
-                dcc.RadioItems(
-                id='radio-buttons',
-                options=options,
-                value='anual'  # Valor por defecto seleccionado
-                )
-            ], width=2),
-            Col([
-                Button('Ver Datos en el Tiempo', id='time-series-button', n_clicks=0, className="btn btn-primary btn-block", style={"width": "100%"}),
-            ], width=4),
-            Col([], width=2),
-        ], className="mb-3", style={"margin": "30px 10px"}),
-        Row([
-            Col([
-                dcc.Loading(
-                    id="loading-frecuencia-cardiaca",
-                    type="default",
-                    children=[
-                        dcc.Graph(id='time-series-plot-frecuencia-cardiaca', style={'display': 'none'})
-                    ]
-                )
-        ], width=12)
-        ]),
-         Row([
-            Col([
-                dcc.Loading(
-                    id="loading-sistolic",
-                    type="default",
-                    children=[
-                        dcc.Graph(id='time-series-plot-diastolica', style={'display': 'none'})
-                    ]
-                )
-        ], width=12),   
-        ]),
-         Row([
-            Col([
-                dcc.Loading(
-                    id="loading-diastolic",
-                    type="default",
-                    children=[
-                        dcc.Graph(id='time-series-plot-sistolica', style={'display': 'none'})
-                    ]
-                )
-        ], width=12),   
-        ])
+                for color in color_info
+                ], width=4, style={'border': '1px solid black', 'padding': '20px 12px'})
+            ], className="mb-3", style={"margin": "30px 10px"}),
+            # Date Picker y Radio Button
+            Row([
+                html.H4(children='Seguimiento Continuo de los datos', className="mb-3"), 
+                html.P(children='A continuación, seleccione el rango de fecha y la agrupación de datos (Anual, Diario o Mensual) que desea observar:', className="mb-3"), 
+                Col([
+                    dcc.DatePickerRange(
+                    id='date-picker-range',
+                    start_date_placeholder_text="Fecha de inicio",
+                    end_date_placeholder_text="Fecha de fin",
+                    display_format='MM/DD/YYYY'
+                    )
+                ], width=4),
+                Col([
+                    dcc.RadioItems(
+                    id='radio-buttons',
+                    options=options,
+                    value='anual'  # Valor por defecto seleccionado
+                    )
+                ], width=2),
+                Col([
+                    Button('Ver Datos en el Tiempo', id='time-series-button', n_clicks=0, className="btn btn-primary btn-block", style={"width": "100%"}),
+                ], width=4),
+                Col([], width=2),
+            ], className="mb-3", style={"margin": "30px 10px"}),
+            Row([
+                Col([
+                    dcc.Loading(
+                        id="loading-frecuencia-cardiaca",
+                        type="default",
+                        children=[
+                            dcc.Graph(id='time-series-plot-frecuencia-cardiaca', style={'display': 'none'})
+                        ]
+                    )
+            ], width=12)
+            ]),
+            Row([
+                Col([
+                    dcc.Loading(
+                        id="loading-sistolic",
+                        type="default",
+                        children=[
+                            dcc.Graph(id='time-series-plot-diastolica', style={'display': 'none'})
+                        ]
+                    )
+            ], width=12),   
+            ]),
+            Row([
+                Col([
+                    dcc.Loading(
+                        id="loading-diastolic",
+                        type="default",
+                        children=[
+                            dcc.Graph(id='time-series-plot-sistolica', style={'display': 'none'})
+                        ]
+                    )
+            ], width=12),   
+            ])
+        ], id="container", style={'display': 'none'})     
     ], className="container-fluid")
