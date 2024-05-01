@@ -164,14 +164,6 @@ try:
     def toggle_gauge_visibility_callback(table_data):
         return showOrHideFigures(table_data)
 
-    # Callback para actualizar date picker
-    @app.callback(
-        Output('date-picker-range', 'style'),
-        [Input('datatable', 'data')]
-    )
-    def toggle_gauge_visibility_callback(table_data):
-        return showOrHideFigures(table_data)
-    
     @app.callback(
         Output('date-picker-range', 'dates'),
         [Input('datatable', 'data')],

@@ -38,18 +38,6 @@ def showOrHideFigures(data):
         # Si no hay datos disponibles, ocultar el gráfico
         return {'display': 'none'}
 
-def showOrHideMessage(dataFrame):
-    print('show message: ', dataFrame)
-    # Si hay datos disponibles, mostrar el gráfico
-    if dataFrame.empty:
-        print('show message')
-        return {'display': 'block'}
-    else:
-        # Si no hay datos disponibles, ocultar el gráfico
-        print('hide message')
-        return {'display': 'none'}   
-
-
 def heart_rate_color(value):
     color = '#45c212'
     if value >= 60 and value <=79:
@@ -145,6 +133,23 @@ def gauge_figure(value, title, rangoAltoDebajo, rangoMedioDebajo, rangoNormal, r
 
     return figure  # Devolver la figura del gráfico de Gauge
   
+def empty_time_series_graph(title, message, color):
+    fig = go.Figure()
+    fig.update_layout(
+        title=title,
+        xaxis_title="",
+        yaxis_title=""
+    )
+    fig.add_annotation(
+        text=message,
+        xref="paper", yref="paper",
+        x=0.5, y=0.5,
+        showarrow=False,
+        font=dict(size=16, color=color)
+    )
+
+    return fig
+
 def time_series_graph(
         dataFrame, 
         tipo, 
@@ -203,22 +208,8 @@ def time_series_graph(
         return fig
         
     else:
-        # Si el DataFrame está vacío, crea un mensaje de texto
-        fig = go.Figure()
-        fig.update_layout(
-            title=title,
-            xaxis_title="",
-            yaxis_title=""
-        )
-        fig.add_annotation(
-            text="No hay datos para mostrar en las fechas seleccionadas",
-            xref="paper", yref="paper",
-            x=0.5, y=0.5,
-            showarrow=False,
-            font=dict(size=16, color="red")
-        )
-
-        return fig
+        return empty_time_series_graph(title, 'No hay datos para mostrar en las fechas seleccionadas', 'red')
+        
     
 #Callbacks
 
@@ -505,10 +496,8 @@ def get_diastolic_data(start_date, end_date, search_value):
     finally:
         cursor.close()  
 
-
 def update_time_series_plot_frecuencia_cardiaca(n_clicks, type_value, start_date, end_date, search_value):
-
-    global heart_rate_series
+    title = 'Frecuencia Cardíaca'
     if n_clicks > 0 and start_date and end_date and type_value:
 
         heart_rate_series = get_heart_rate_data(start_date, end_date, search_value)
@@ -516,7 +505,7 @@ def update_time_series_plot_frecuencia_cardiaca(n_clicks, type_value, start_date
         return time_series_graph(
             heart_rate_series, 
             'frecuencia_cardiaca', 
-            'Frecuencia Cardíaca', 
+            title, 
             50, 
             60,
             80, 
@@ -527,17 +516,18 @@ def update_time_series_plot_frecuencia_cardiaca(n_clicks, type_value, start_date
             120,
             'BPM')
     else:
-        return dash.no_update
-  
+        # Si el DataFrame está vacío, crea un mensaje de texto
+        return empty_time_series_graph(title, 'Seleccione un rango de fechas mostrar los datos en el tiempo', 'black')
+        
 def update_time_series_plot_sistolica(n_clicks, type_value, start_date, end_date, search_value):
-
+    title = 'Presión Sistólica'
     if n_clicks > 0 and start_date and end_date and type_value:
         p_sistolic_series = get_sistolic_data(start_date, end_date, search_value)
  
         return time_series_graph(
             p_sistolic_series, 
             't_a_sistolica', 
-            'Presión Sistólica', 
+            title, 
             80, 
             90,
             130, 
@@ -548,16 +538,17 @@ def update_time_series_plot_sistolica(n_clicks, type_value, start_date, end_date
             160,
             'mm[Hg]')
     else:
-        return dash.no_update
+        return empty_time_series_graph(title, 'Seleccione un rango de fechas mostrar los datos en el tiempo', 'black')
          
 def update_time_series_plot_diastolica(n_clicks, type_value, start_date, end_date, search_value):
+    title = 'Presión Diastólica'
     if n_clicks > 0 and start_date and end_date and type_value:
         p_diastolic_series = get_diastolic_data(start_date, end_date, search_value)
  
         return time_series_graph(
             p_diastolic_series, 
             't_a_diastolica', 
-            'Presión Diastólica', 
+            title, 
             50, 
             60,
             80, 
@@ -568,7 +559,7 @@ def update_time_series_plot_diastolica(n_clicks, type_value, start_date, end_dat
             120,
             'mm[Hg]')
     else:
-        return dash.no_update
+        return empty_time_series_graph(title, 'Seleccione un rango de fechas mostrar los datos en el tiempo', 'black')
 
 
 def layout_dashboard_patient(): 
@@ -693,8 +684,7 @@ def layout_dashboard_patient():
                 id='date-picker-range',
                 start_date_placeholder_text="Fecha de inicio",
                 end_date_placeholder_text="Fecha de fin",
-                display_format='MM/DD/YYYY', 
-                style={'display': 'none'}
+                display_format='MM/DD/YYYY'
                 )
             ], width=4),
             Col([
