@@ -78,7 +78,7 @@ try:
         [State('search-input', 'value')],
     )
     def update_table_callback(n_clicks, search_value):
-        return update_table(n_clicks, search_value, 10)
+        return update_table(n_clicks, search_value)
 
     # Callback para actualizar el gráfico de Gauge con la frecuencia cardíaca
     @app.callback(
@@ -107,7 +107,7 @@ try:
     # Callback para el gráfico de tiempo de la frecuencia cardiaca
     @app.callback(
         Output('time-series-plot-frecuencia-cardiaca', 'figure'),
-        [Input('heart-rate-button', 'n_clicks')],
+        [Input('time-series-button', 'n_clicks')],
         [State('radio-buttons', 'value')],
         [State('date-picker-range', 'start_date')],
         [State('date-picker-range', 'end_date')],
@@ -119,7 +119,7 @@ try:
     
     @app.callback(
         Output('time-series-plot-sistolica', 'figure'),
-        [Input('heart-rate-button', 'n_clicks')],
+        [Input('time-series-button', 'n_clicks')],
         [Input('time-series-plot-frecuencia-cardiaca', 'figure')],
         [State('radio-buttons', 'value')],
         [State('date-picker-range', 'start_date')],
@@ -132,7 +132,7 @@ try:
     # Callback para el gráfico de tiempo de la presión diastólica
     @app.callback(
         Output('time-series-plot-diastolica', 'figure'),
-        [Input('heart-rate-button', 'n_clicks')],
+        [Input('time-series-button', 'n_clicks')],
         [Input('time-series-plot-sistolica', 'figure')],
         [State('radio-buttons', 'value')],
         [State('date-picker-range', 'start_date')],
@@ -201,7 +201,10 @@ try:
     )
     def toggle_time_series_visibility_callback(table_data):
         return showOrHideFigures(table_data)
+    
+    # Condicional para Layaout:
 
+    
 except Exception as e:
         print('Error: ', e)
 

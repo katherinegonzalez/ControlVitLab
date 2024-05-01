@@ -20,10 +20,6 @@ heart_rate = None
 p_sistolic = None
 p_diastolic = None
 
-# heart_rate_series = pd.DataFrame()
-# p_sistolic_series = pd.DataFrame()
-p_diastolic_series = pd.DataFrame()
-
 available_dates = []
 
 options = [
@@ -41,6 +37,18 @@ def showOrHideFigures(data):
     else:
         # Si no hay datos disponibles, ocultar el gráfico
         return {'display': 'none'}
+
+def showOrHideMessage(dataFrame):
+    print('show message: ', dataFrame)
+    # Si hay datos disponibles, mostrar el gráfico
+    if dataFrame.empty:
+        print('show message')
+        return {'display': 'block'}
+    else:
+        # Si no hay datos disponibles, ocultar el gráfico
+        print('hide message')
+        return {'display': 'none'}   
+
 
 def heart_rate_color(value):
     color = '#45c212'
@@ -151,10 +159,7 @@ def time_series_graph(
         topRange,
         ejeYtitle
         ):
-    print(tipo, dataFrame.empty)
-    print('dataFrame: ', dataFrame)
     if not dataFrame.empty:
-        print(tipo)
         # Crea el gráfico de series temporales
         fig = go.Figure()
         fig.add_trace(go.Scatter(x=dataFrame['fecha'], y=dataFrame[tipo], mode='lines', name='Time Series'))
@@ -178,13 +183,6 @@ def time_series_graph(
         fig.add_hline(y=riesgoMedioDebajo, line_dash='dash', line_color='orange', annotation_text='Rieso Medio', annotation_position='bottom right')
         fig.add_hline(y=riesgoAltoDebajo, line_dash='dash', line_color='red', annotation_text='Rieso Alto', annotation_position='bottom right')
         
-        # Agrega un color de fondo entre las líneas
-        # fig.add_hrect(y0=0, y1=riesgoAltoDebajo, fillcolor='red', opacity=0.5)
-        # fig.add_hrect(y0=riesgoAltoDebajo, y1=riesgoMedioDebajo, fillcolor='orange', opacity=0.3)
-        # fig.add_hrect(y0=riesgoMedioDebajo, y1=riesgoNormal, fillcolor='green', opacity=0.5)
-        # fig.add_hrect(y0=riesgoNormal, y1=riesgoMedioEncima, fillcolor='orange', opacity=0.5)
-        # fig.add_hrect(y0=riesgoMedioEncima, y1=riesgoAltoEncima, fillcolor='red', opacity=0.5)
-
         if period == 'anual':
             fig.update_xaxes(
                 dtick='M12',
@@ -205,10 +203,23 @@ def time_series_graph(
         return fig
         
     else:
-        return dash.no_update
+        # Si el DataFrame está vacío, crea un mensaje de texto
+        fig = go.Figure()
+        fig.update_layout(
+            title=title,
+            xaxis_title="",
+            yaxis_title=""
+        )
+        fig.add_annotation(
+            text="No hay datos para mostrar en las fechas seleccionadas",
+            xref="paper", yref="paper",
+            x=0.5, y=0.5,
+            showarrow=False,
+            font=dict(size=16, color="red")
+        )
+
+        return fig
     
-
-
 #Callbacks
 
 def update_search_options():
@@ -233,18 +244,11 @@ def update_search_options():
     finally:
         cursor.close()
 
-def update_table(n_clicks, search_value, dates_limit):
+def update_table(n_clicks, search_value):
     global heart_rate
     global p_sistolic
     global p_diastolic
-
-    # global heart_rate_series
-    # global p_sistolic_series
-    # global p_diastolic_series
-
-    global available_dates
     
-    print('entra a tabla: ',  n_clicks)
     if n_clicks > 0 and search_value:
         # Si el botón se ha clicado y hay un valor de búsqueda, realiza la búsqueda
         try:
@@ -268,9 +272,9 @@ def update_table(n_clicks, search_value, dates_limit):
                 FROM pacientes.pacientes_vit 
                 WHERE id_cia = %s
                 ORDER BY fecha DESC
-                LIMIT %s
+                LIMIT 1
             """)
-            cursor.execute(sql_query_search, (search_value, dates_limit))
+            cursor.execute(sql_query_search, search_value)
 
             # Obtener los resultados de la consulta como una lista de diccionarios
             results = cursor.fetchall()
@@ -281,8 +285,6 @@ def update_table(n_clicks, search_value, dates_limit):
 
             # Crear un DataFrame a partir de los resultados
             df_search = pd.DataFrame(results)
-
-            # available_dates = df_search['fecha'].iloc[0]
 
             # Guardar la frecuencia cardíaca en la variable global
             heart_rate = df_search['frecuencia_cardiaca'].iloc[0]
@@ -311,7 +313,6 @@ def update_table(n_clicks, search_value, dates_limit):
 
 # Obtener fechas disponibles en la base de datos
 def get_available_dates(data_table, search_value):
-    print('search value en date picker: ', search_value)
     if data_table:
         try:
             cursor = conn.cursor()
@@ -328,7 +329,6 @@ def get_available_dates(data_table, search_value):
             
 
             available_dates = [date['fecha'] for date in results]
-            print('available_dates: ', available_dates)
 
 
              # Determinar la fecha mínima y máxima
@@ -349,7 +349,6 @@ def update_gauge_heart_rate():
     try:
         # Solo ejecutar si se hizo clic en el botón
         if heart_rate:
-            print(heart_rate)
             return gauge_figure(
                 heart_rate, 
                 'BPM', 
@@ -374,7 +373,6 @@ def update_gauge_diastolic():
     try:
         # Solo ejecutar si se hizo clic en el botón
         if p_diastolic:
-            print(p_diastolic)
              # Crear el objeto de figura para el gráfico de Gauge
             return gauge_figure(
                 p_diastolic, 
@@ -401,7 +399,6 @@ def update_gauge_sistolic():
     try:
         # Solo ejecutar si se hizo clic en el botón
         if p_sistolic:
-            print(p_sistolic)
              # Crear el objeto de figura para el gráfico de Gauge
             return gauge_figure(
                 p_sistolic, 
@@ -442,7 +439,6 @@ def get_heart_rate_data(start_date, end_date, search_value):
         heart_rate_series = pd.DataFrame(results)
 
         if not heart_rate_series.empty:
-            print('heart_rate_series: ', heart_rate_series)
             heart_rate_series.loc[:, 'fecha'] = pd.to_datetime(heart_rate_series['fecha'])
         
         return heart_rate_series
@@ -471,7 +467,6 @@ def get_sistolic_data(start_date, end_date, search_value):
         sistolic_series = pd.DataFrame(results)
 
         if not sistolic_series.empty:
-            print('sistolic_series: ', sistolic_series)
             sistolic_series.loc[:, 'fecha'] = pd.to_datetime(sistolic_series['fecha'])
         
         return sistolic_series
@@ -500,7 +495,6 @@ def get_diastolic_data(start_date, end_date, search_value):
         diastolic_series = pd.DataFrame(results)
 
         if not diastolic_series.empty:
-            print('diastolic_series: ', diastolic_series)
             diastolic_series.loc[:, 'fecha'] = pd.to_datetime(diastolic_series['fecha'])
         
         return diastolic_series
@@ -513,7 +507,8 @@ def get_diastolic_data(start_date, end_date, search_value):
 
 
 def update_time_series_plot_frecuencia_cardiaca(n_clicks, type_value, start_date, end_date, search_value):
-    
+
+    global heart_rate_series
     if n_clicks > 0 and start_date and end_date and type_value:
 
         heart_rate_series = get_heart_rate_data(start_date, end_date, search_value)
@@ -575,6 +570,7 @@ def update_time_series_plot_diastolica(n_clicks, type_value, start_date, end_dat
     else:
         return dash.no_update
 
+
 def layout_dashboard_patient(): 
 
     data_conditional = [
@@ -590,6 +586,13 @@ def layout_dashboard_patient():
             'if': {'column_id': 'Estado de IMC', 'filter_query': '{Estado de IMC} = "Obesidad"'},
             'color': 'red'  # Color rojo para obesidad
         }]
+    
+    # Define los colores y su significado
+    color_info = [
+        {'color': 'red', 'text': 'Riesgo Alto'},
+        {'color': 'green', 'text': 'Normal'},
+        {'color': 'orange', 'text': 'Riesgo Medio'}
+    ]
 
     return html.Div([
         # Barra de búsqueda y botón
@@ -664,7 +667,23 @@ def layout_dashboard_patient():
                 ]),
             ], width=8, style={'border': '1px solid black', 'padding': '20px 12px'}),
         ], className="mb-3", style={"margin": "30px 10px"}),
-
+        Row([
+            Col([
+               
+                Row([
+                    Col([
+                        html.Div(style={'background-color': color['color'], 'height': '20px', 'width': '20px'})
+                    ], width=2),
+                    Col([ 
+                        html.Div(color['text'])
+                    ], width=10),
+            
+                ])
+         
+            for color in color_info
+            ], width=4, style={'border': '1px solid black', 'padding': '20px 12px'})
+        ], className="mb-3", style={"margin": "30px 10px"}),
+  
         # Date Picker y Radio Button
         Row([
             html.H4(children='Seguimiento Continuo de los datos', className="mb-3"), 
@@ -686,23 +705,41 @@ def layout_dashboard_patient():
                 )
             ], width=2),
             Col([
-                Button('Ver Datos en el Tiempo', id='heart-rate-button', n_clicks=0, className="btn btn-primary btn-block", style={"width": "100%"}),
+                Button('Ver Datos en el Tiempo', id='time-series-button', n_clicks=0, className="btn btn-primary btn-block", style={"width": "100%"}),
             ], width=4),
             Col([], width=2),
         ], className="mb-3", style={"margin": "30px 10px"}),
-        # Gráficos de tiempo
         Row([
             Col([
                 dcc.Loading(
-                    id="loading-5",
+                    id="loading-frecuencia-cardiaca",
                     type="default",
                     children=[
-                        dcc.Graph(id='time-series-plot-frecuencia-cardiaca', style={'display': 'none'}),
-                        dcc.Graph(id='time-series-plot-sistolica', style={'display': 'none'}),
+                        dcc.Graph(id='time-series-plot-frecuencia-cardiaca', style={'display': 'none'})
+                    ]
+                )
+        ], width=12)
+        ]),
+         Row([
+            Col([
+                dcc.Loading(
+                    id="loading-sistolic",
+                    type="default",
+                    children=[
                         dcc.Graph(id='time-series-plot-diastolica', style={'display': 'none'})
                     ]
                 )
-            ], width=12),
+        ], width=12),   
         ]),
-    # html.Button('Ver Frecuencia Cardiaca', id='heart-rate-button', n_clicks=0)
+         Row([
+            Col([
+                dcc.Loading(
+                    id="loading-diastolic",
+                    type="default",
+                    children=[
+                        dcc.Graph(id='time-series-plot-sistolica', style={'display': 'none'})
+                    ]
+                )
+        ], width=12),   
+        ])
     ], className="container-fluid")
