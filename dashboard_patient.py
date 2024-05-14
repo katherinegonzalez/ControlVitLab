@@ -1,7 +1,7 @@
 from dash import html
 from bd_conf import conn
 import pymysql
-from dash import Dash, html, dash_table, dcc, callback_context
+from dash import Dash, html, dash_table, dcc
 from dash.dependencies import Input, Output, State
 from dash.exceptions import PreventUpdate
 import dash
@@ -678,7 +678,7 @@ def layout_dashboard_patient():
             # Date Picker y Radio Button
             Row([
                 html.H4(children='Seguimiento Continuo de los datos', className="mb-3"), 
-                html.P(children='A continuación, seleccione el rango de fecha y la agrupación de datos (Anual, Diario o Mensual) que desea observar:', className="mb-3"), 
+                html.P(children='A continuación, seleccione el rango de fecha y la forma en que desea observar los datos: Anual, Diario o Mensual:', className="mb-3"), 
                 Col([
                     dcc.DatePickerRange(
                     id='date-picker-range',
