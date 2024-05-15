@@ -185,7 +185,7 @@ def get_patients_risk(resultados_sql):
     print(resultados_sql['Prioridad'])
 
     # Eliminar la columna de prioridad
-    # resultados_sql.drop(columns=['Prioridad'], inplace=True)
+    resultados_sql.drop(columns=['Prioridad'], inplace=True)
 
     return resultados_sql
 
@@ -282,10 +282,7 @@ def layout_dashboard1():
                             {'name': 'Frecuencia Cardiaca BPM', 'id': 'Frecuencia Cardiaca BPM'},
                             {'name': 'Presión Sistólica mm[Hg]', 'id': 'Presión Sistólica mm[Hg]'},
                             {'name': 'Presión Diastólica mm[Hg]', 'id': 'Presión Diastólica mm[Hg]'},
-                            {'name': 'Riesgo', 'id': 'Riesgo'},
-                            {'name': 'Riesgo FC', 'id': 'Riesgo FC'},
-                            {'name': 'Prioridad', 'id': 'Prioridad'},
-                            
+                            {'name': 'Riesgo', 'id': 'Riesgo'}        
                         ],
                         style_data_conditional=data_conditional,
                         style_header={
@@ -293,6 +290,8 @@ def layout_dashboard1():
                             'backgroundColor': '#0d6efd99',  # Fondo de la cabecera
                             'fontFamily': 'Arial, sans-serif',
                             'fontWeight': '600',
+                            'paddingLeft': '15px',  # Padding izquierdo
+                            'paddingRight': '15px',  # Padding derecho
                         },
                         style_header_conditional=[  # Estilo condicional para el encabezado
                             {
@@ -307,7 +306,8 @@ def layout_dashboard1():
                             'minWidth': '50px',  # Ancho mínimo de la celda
                             'width': '100px',  # Ancho predeterminado de la celda
                             'maxWidth': '200px',
-                            'height': '100px'  # Ancho máximo de la celda
+                            'height': '100px',  # Ancho máximo de la celda
+                            'whiteSpace': 'normal',  # Permitir saltos de línea
                         },
                         style_table={'overflowX': 'auto', 'width': '100%'}
                     ),
