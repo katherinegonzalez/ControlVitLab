@@ -76,6 +76,43 @@ data_conditional = [
         #cell_color('IMC', 'Estado de IMC', 'Obesidad')
     ]
 
+# Función para calcular la prioridad
+def calcular_prioridad(row):
+    count_alto = sum(row[['Riesgo FC', 'Riesgo Dis', 'Riesgo Sis']].str.contains('alto'))
+    count_medio = sum(row[['Riesgo FC', 'Riesgo Dis', 'Riesgo Sis']].str.contains('riesgo medio'))
+    count_normal = sum(row[['Riesgo FC', 'Riesgo Dis', 'Riesgo Sis']].str.contains('normal'))
+   
+    if count_alto == 3:
+        return 1
+    elif count_alto == 2:
+        if count_medio == 1:
+            return 2  # Dos "alto" y uno "medio"
+        elif count_normal == 1:
+            return 3  # Dos "alto" y un normal
+        else:
+            return 4
+    elif count_alto == 1:
+        if count_medio == 2:
+            return 5  # Un "alto" y dos "medio"
+        elif count_medio == 1:
+            return 6  # Un "alto" y un "medio"
+        elif count_normal == 2:
+            return 7  # Un "alto" y un "medio"
+        else:
+            return 8  # Un "alto" y cero "medio"
+    elif count_medio == 3:
+        return 9
+    elif count_medio == 2:
+        if count_normal == 1:
+            return 10  # Dos "alto" y uno "medio"
+        else:
+            return 11
+    elif count_medio == 1:
+        return 12
+    else:
+        return 13
+
+
 def get_patients_risk(resultados_sql):
 
     # Para manejar los valores NaN y reemplazarlos con "Sin dato"
@@ -140,9 +177,15 @@ def get_patients_risk(resultados_sql):
             print('Error en prediccion: ', e)
 
     # Para reorganizar el DataFrame según los niveles de riesgo
-    resultados_sql['Total de Riesgos'] = resultados_sql.apply(lambda row: sum(row[['Riesgo FC', 'Riesgo Dis', 'Riesgo Sis']].value_counts()), axis=1)
-    resultados_sql.sort_values(by='Total de Riesgos', ascending=False, inplace=True)
-    resultados_sql.drop(columns=['Total de Riesgos'], inplace=True)
+    # Crear la columna de prioridad
+    resultados_sql['Prioridad'] = resultados_sql.apply(calcular_prioridad, axis=1)
+
+    # Ordenar por la columna de prioridad
+    resultados_sql.sort_values(by='Prioridad', inplace=True)
+    print(resultados_sql['Prioridad'])
+
+    # Eliminar la columna de prioridad
+    # resultados_sql.drop(columns=['Prioridad'], inplace=True)
 
     return resultados_sql
 
@@ -239,7 +282,10 @@ def layout_dashboard1():
                             {'name': 'Frecuencia Cardiaca BPM', 'id': 'Frecuencia Cardiaca BPM'},
                             {'name': 'Presión Sistólica mm[Hg]', 'id': 'Presión Sistólica mm[Hg]'},
                             {'name': 'Presión Diastólica mm[Hg]', 'id': 'Presión Diastólica mm[Hg]'},
-                            {'name': 'Riesgo', 'id': 'Riesgo'}
+                            {'name': 'Riesgo', 'id': 'Riesgo'},
+                            {'name': 'Riesgo FC', 'id': 'Riesgo FC'},
+                            {'name': 'Prioridad', 'id': 'Prioridad'},
+                            
                         ],
                         style_data_conditional=data_conditional,
                         style_header={
