@@ -21,77 +21,58 @@ dt_clf_fc = joblib.load('modelosClasificacion/modelo_frecuencia_cardiaca.pkl')
 dt_clf_sis = joblib.load('modelosClasificacion/modelo_presion_sistolica.pkl')
 dt_clf_dis = joblib.load('modelosClasificacion/modelo_presion_diastolica.pkl')
 
-
+alert_colors =  {
+    'normal': '#81c784',
+    'alto': '#ff00008c',
+    'medio': '#ffa50085'
+}
 
 # Define los colores y su significado
 color_info = [
-    {'color': '#ff00008c', 'text': 'Riesgo Alto'},
-    {'color': '#ffa50085', 'text': 'Riesgo Medio'}
+    {'color': alert_colors['alto'], 'text': 'Riesgo Alto'},
+    {'color': alert_colors['medio'], 'text': 'Riesgo Medio'},
+    {'color': alert_colors['normal'], 'text': 'Sin riesgo'}
 ]
 
+def cell_color(column_id, risk_type, risk_grade):
+    print('risk_grade: ', risk_grade)
+    risk_grade_color = ('normal' if risk_grade == 'Saludable' 
+        else 'medio' if risk_grade == 'Sobrepeso' 
+        else 'alto' if risk_grade == 'Obesidad' 
+        else str(risk_grade).lower())
+    print('risk_grade_after: ', risk_grade)
+    print('risk_type: ', risk_type)
+    print('risk_grade_color: ', risk_grade_color)
+    print('color grade: ', alert_colors[risk_grade_color])
+    return {
+        'if': {
+            'column_id': column_id,
+            'filter_query': '{'+risk_type+'} contains "'+risk_grade+'"'
+        },
+        'backgroundColor': alert_colors[risk_grade_color], 
+        'color': 'black' 
+    }
+
 data_conditional = [
-        {
-            'if': {'column_id': 'Estado de IMC', 'filter_query': '{Estado de IMC} = "Saludable"'},
-            'color': 'green'  # Color verde para estado saludable
-        },
-        {
-            'if': {'column_id': 'Estado de IMC', 'filter_query': '{Estado de IMC} = "Sobrepeso"'},
-            'color': 'orange'  # Color naranja para sobrepeso
-        },
-        {
-            'if': {'column_id': 'Estado de IMC', 'filter_query': '{Estado de IMC} = "Obesidad"'},
-            'color': 'red'  # Color rojo para obesidad
-        },
-        {
-            'if': {
-                'column_id': 'Frecuencia Cardiaca BPM',
-                'filter_query': '{Riesgo FC} contains "riesgo alto"'
-            },
-            'backgroundColor': '#ff00008c',  # Color de fondo rojo
-            'color': 'black'  # Texto blanco
-        },
-        {
-            'if': {
-                'column_id': 'Frecuencia Cardiaca BPM',
-                'filter_query': '{Riesgo FC} contains "riesgo medio"'
-            },
-            'backgroundColor': '#ffa50085',  # Color de fondo rojo
-            'color': 'black'  # Texto blanco
-        },
-        {
-            'if': {
-                'column_id': 'Presión Sistólica mm[Hg]',
-                'filter_query': '{Riesgo Sis} contains "riesgo alto"'
-            },
-            'backgroundColor': '#ff00008c',  # Color de fondo rojo
-            'color': 'black'  # Texto blanco
-        },
-        {
-            'if': {
-                'column_id': 'Presión Sistólica mm[Hg]',
-                'filter_query': '{Riesgo Sis} contains "riesgo medio"'
-            },
-            'backgroundColor': '#ffa50085',  # Color de fondo rojo
-            'color': 'black'  # Texto blanco
-        },
-        {
-            'if': {
-                'column_id': 'Presión Diastólica mm[Hg]',
-                'filter_query': '{Riesgo Dis} contains "riesgo alto"'
-            },
-            'backgroundColor': '#ff00008c',  # Color de fondo rojo
-            'color': 'black'  # Texto blanco
-        },
-        {
-            'if': {
-                'column_id': 'Presión Diastólica mm[Hg]',
-                'filter_query': '{Riesgo Dis} contains "riesgo medio"'
-            },
-            'backgroundColor': '#ffa50085',  # Color de fondo rojo
-            'color': 'black'  # Texto blanco
-        },
-        ]
-    
+        cell_color('Frecuencia Cardiaca BPM', 'Riesgo FC', 'normal'),
+        cell_color('Frecuencia Cardiaca BPM', 'Riesgo FC', 'medio'),
+        cell_color('Frecuencia Cardiaca BPM', 'Riesgo FC', 'alto'),
+        cell_color('Presión Sistólica mm[Hg]', 'Riesgo Sis', 'normal'),
+        cell_color('Presión Sistólica mm[Hg]', 'Riesgo Sis', 'medio'),
+        cell_color('Presión Sistólica mm[Hg]', 'Riesgo Sis', 'alto'),
+        cell_color('Presión Diastólica mm[Hg]', 'Riesgo Dis', 'normal'),
+        cell_color('Presión Diastólica mm[Hg]', 'Riesgo Dis', 'medio'),
+        cell_color('Presión Diastólica mm[Hg]', 'Riesgo Dis', 'alto'),
+        cell_color('Riesgo', 'Riesgo', 'Normal'),
+        cell_color('Riesgo', 'Riesgo', 'Medio'),
+        cell_color('Riesgo', 'Riesgo', 'Alto'),
+        #cell_color('Estado de IMC', 'Estado de IMC', 'Saludable'),
+        #cell_color('Estado de IMC', 'Estado de IMC', 'Sobrepeso'),
+        #cell_color('Estado de IMC', 'Estado de IMC', 'Obesidad'),
+        #cell_color('IMC', 'Estado de IMC', 'Saludable'),
+        #cell_color('IMC', 'Estado de IMC', 'Sobrepeso'),
+        #cell_color('IMC', 'Estado de IMC', 'Obesidad')
+    ]
 
 def get_patients_risk(resultados_sql):
 
@@ -123,6 +104,16 @@ def get_patients_risk(resultados_sql):
             resultados_sql.at[indice, 'Riesgo Sis'] = prediccion_sis[0]
             resultados_sql.at[indice, 'Riesgo Dis'] = prediccion_dis[0]
 
+            riesgo_total = 'Normal'
+            if 'alto' in prediccion_fc[0] or 'alto' in prediccion_sis[0] or 'alto' in prediccion_dis[0]:
+                riesgo_total = 'Alto'
+            elif 'medio' in prediccion_fc[0] or 'medio' in prediccion_sis[0] or 'medio' in prediccion_dis[0]:
+                riesgo_total = 'Medio'
+            else: 
+                riesgo_total = 'Normal'
+
+            resultados_sql.at[indice, 'Riesgo'] = riesgo_total
+
         except Exception as e:
             print('Error en prediccion: ', e)
         
@@ -136,23 +127,22 @@ def get_all_patients_last_report():
         cursor = conn.cursor()
         sql_query_search = ("""
             SELECT 
-                pv.fecha AS 'Fecha de Diagnóstico', 
+                DATE_FORMAT(pv.fecha, '%Y-%m-%d') AS 'Fecha de Diagnóstico', 
                 pv.nombre AS 'Nombre de Paciente', 
                 pv.identificacion AS 'Identificación', 
                 TIMESTAMPDIFF(YEAR, pv.fec_nacimiento, CURDATE()) AS 'Edad',
                 pv.sexo AS 'Género', 
-                pv.peso AS 'Peso',          
+                pv.peso AS 'Peso',     
+                pv.talla AS 'Talla', 
                 pv.frecuencia_cardiaca AS 'Frecuencia Cardiaca BPM', 
                 pv.t_a_sistolica AS 'Presión Sistólica mm[Hg]', 
-                pv.t_a_diastolica AS 'Presión Diastólica mm[Hg]', 
-                pv.talla AS 'Talla', 
+                pv.t_a_diastolica AS 'Presión Diastólica mm[Hg]',
                 ROUND((pv.peso * 10000) / (pv.talla * pv.talla), 2) AS IMC,
                 CASE 
                     WHEN (pv.peso * 10000) / (pv.talla * pv.talla) >= 30 THEN 'Obesidad' 
                     WHEN (pv.peso * 10000) / (pv.talla * pv.talla) >= 25 THEN 'Sobrepeso' 
                     ELSE 'Saludable' 
                 END AS 'Estado de IMC'
-                 
             FROM pacientes.pacientes_vit pv
             INNER JOIN (
                 SELECT id_cia, MAX(fecha) AS max_fecha
@@ -190,7 +180,7 @@ def layout_dashboard1():
         Col([
             Row([
                 Col([
-                    html.Div(style={'background-color': color['color'], 'height': '20px', 'width': '20px'})
+                    html.Div(style={'backgroundColor': color['color'], 'height': '20px', 'width': '20px'})
                 ], width=2),
                 Col([
                     html.Div(color['text'])
@@ -207,18 +197,44 @@ def layout_dashboard1():
                 children=[
                     dash_table.DataTable(
                         id='datatable',
-                        # Aquí obtienes los datos de la función get_all_patients_last_report()
                         data=get_all_patients_last_report(),
                         page_size=20,
+                        columns=[
+                            {'name': 'Fecha de Diagnóstico', 'id': 'Fecha de Diagnóstico'},
+                            {'name': 'Nombre de Paciente', 'id': 'Nombre de Paciente'},
+                            {'name': 'Identificación', 'id': 'Identificación'},
+                            {'name': 'Edad', 'id': 'Edad'},
+                            {'name': 'Género', 'id': 'Género'},
+                            {'name': 'Peso (kg)', 'id': 'Peso'},
+                            {'name': 'Talla (cm)', 'id': 'Talla'},
+                            {'name': 'IMC', 'id': 'IMC'},
+                            {'name': 'Estado de IMC', 'id': 'Estado de IMC'},  
+                            {'name': 'Frecuencia Cardiaca BPM', 'id': 'Frecuencia Cardiaca BPM'},
+                            {'name': 'Presión Sistólica mm[Hg]', 'id': 'Presión Sistólica mm[Hg]'},
+                            {'name': 'Presión Diastólica mm[Hg]', 'id': 'Presión Diastólica mm[Hg]'},
+                            {'name': 'Riesgo', 'id': 'Riesgo'}
+                        ],
                         style_data_conditional=data_conditional,
                         style_header={
                             'textAlign': 'left',  # Alinear texto a la izquierda
                             'backgroundColor': '#0d6efd99',  # Fondo de la cabecera
                             'fontFamily': 'Arial, sans-serif',
-                            'fontWeight': '600'
+                            'fontWeight': '600',
                         },
+                        style_header_conditional=[  # Estilo condicional para el encabezado
+                            {
+                                'if': {'column_editable': False},  # Solo aplicar a las columnas no editables
+                                'backgroundColor': '#0d6efd99',  # Color de fondo del encabezado
+                                'color': 'black',  # Color del texto del encabezado
+                                'height': 'auto',  # Alto automático para el encabezado
+                            }
+                        ],
                         style_cell={
-                            'textAlign': 'left',
+                            'textAlign': 'center',
+                            'minWidth': '50px',  # Ancho mínimo de la celda
+                            'width': '100px',  # Ancho predeterminado de la celda
+                            'maxWidth': '200px',
+                            'height': '100px'  # Ancho máximo de la celda
                         },
                         style_table={'overflowX': 'auto', 'width': '100%'}
                     ),
