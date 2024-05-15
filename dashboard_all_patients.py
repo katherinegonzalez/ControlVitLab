@@ -24,7 +24,8 @@ dt_clf_dis = joblib.load('modelosClasificacion/modelo_presion_diastolica.pkl')
 alert_colors =  {
     'normal': '#81c784',
     'alto': '#ff00008c',
-    'medio': '#ffa50085'
+    'medio': '#ffa50085',
+    'no_data': '#b5b5b5'
 }
 
 # Define los colores y su significado
@@ -54,6 +55,7 @@ def cell_color(column_id, risk_type, risk_grade):
     }
 
 data_conditional = [
+        cell_color('Frecuencia Cardiaca BPM', 'Riesgo FC', 'no_data'),
         cell_color('Frecuencia Cardiaca BPM', 'Riesgo FC', 'normal'),
         cell_color('Frecuencia Cardiaca BPM', 'Riesgo FC', 'medio'),
         cell_color('Frecuencia Cardiaca BPM', 'Riesgo FC', 'alto'),
@@ -76,18 +78,31 @@ data_conditional = [
 
 def get_patients_risk(resultados_sql):
 
+    # Para manejar los valores NaN y reemplazarlos con "Sin dato"
+    resultados_sql.fillna(value="Sin datos", inplace=True)
+
     # Para cada fila de los resultados
     for indice, fila in resultados_sql.iterrows():
+         
+        frec_cardiaca_to_pred = [fila['Frecuencia Cardiaca BPM']]
+        sistolica_to_pred = [fila['Presión Sistólica mm[Hg]']]
+        diastolica_to_pred = [fila['Presión Diastólica mm[Hg]']]
 
         # Verificar si alguno de los valores es NaN
-        if pd.isna(fila['Frecuencia Cardiaca BPM']) or pd.isna(fila['Presión Sistólica mm[Hg]']) or pd.isna(fila['Presión Diastólica mm[Hg]']):
+        if pd.isna(fila['Frecuencia Cardiaca BPM']) and pd.isna(fila['Presión Sistólica mm[Hg]']) and pd.isna(fila['Presión Diastólica mm[Hg]']):
             print(f"Los datos de la fila {indice} contienen NaN, no se realizará ninguna predicción.")
             continue
+        elif fila['Frecuencia Cardiaca BPM'] == 'Sin datos':
+            frec_cardiaca_to_pred = 0
+        elif pd.isna(fila['Presión Sistólica mm[Hg]']):
+            sistolica_to_pred = 0
+        elif pd.isna(fila['Presión Diastólica mm[Hg]']):
+            diastolica_to_pred = 0
     
         data_to_predict = {
-            'frecuencia_cardiaca': [fila['Frecuencia Cardiaca BPM']],
-            't_a_sistolica': [fila['Presión Sistólica mm[Hg]']],
-            't_a_diastolica': [fila['Presión Diastólica mm[Hg]']]
+            'frecuencia_cardiaca': frec_cardiaca_to_pred,
+            't_a_sistolica': sistolica_to_pred,
+            't_a_diastolica': diastolica_to_pred
         }
 
         # Convertir el diccionario data_to_predict en una matriz bidimensional
@@ -104,6 +119,13 @@ def get_patients_risk(resultados_sql):
             resultados_sql.at[indice, 'Riesgo Sis'] = prediccion_sis[0]
             resultados_sql.at[indice, 'Riesgo Dis'] = prediccion_dis[0]
 
+            if fila['Frecuencia Cardiaca BPM'] == 'Sin datos':
+                resultados_sql.at[indice, 'Riesgo FC'] = 'no_data'
+            elif fila['Presión Sistólica mm[Hg]'] == 'Sin datos':
+                resultados_sql.at[indice, 'Riesgo Sis'] = 'no_data'
+            elif fila['Presión Diastólica mm[Hg]'] == 'Sin datos':
+                resultados_sql.at[indice, 'Riesgo FC'] = 'no_data'
+
             riesgo_total = 'Normal'
             if 'alto' in prediccion_fc[0] or 'alto' in prediccion_sis[0] or 'alto' in prediccion_dis[0]:
                 riesgo_total = 'Alto'
@@ -116,7 +138,12 @@ def get_patients_risk(resultados_sql):
 
         except Exception as e:
             print('Error en prediccion: ', e)
-        
+
+    # Para reorganizar el DataFrame según los niveles de riesgo
+    resultados_sql['Total de Riesgos'] = resultados_sql.apply(lambda row: sum(row[['Riesgo FC', 'Riesgo Dis', 'Riesgo Sis']].value_counts()), axis=1)
+    resultados_sql.sort_values(by='Total de Riesgos', ascending=False, inplace=True)
+    resultados_sql.drop(columns=['Total de Riesgos'], inplace=True)
+
     return resultados_sql
 
 # Utiliza resultados_con_color para crear la tabla en Dash con celdas coloreadas según la etiqueta predicha
@@ -216,7 +243,7 @@ def layout_dashboard1():
                         ],
                         style_data_conditional=data_conditional,
                         style_header={
-                            'textAlign': 'left',  # Alinear texto a la izquierda
+                            'textAlign': 'center',  # Alinear texto a la izquierda
                             'backgroundColor': '#0d6efd99',  # Fondo de la cabecera
                             'fontFamily': 'Arial, sans-serif',
                             'fontWeight': '600',
