@@ -25,54 +25,79 @@ cluster_1 = df_clasificado.loc[df_clasificado['Clusters']==1]
 cluster_2 = df_clasificado.loc[df_clasificado['Clusters']==2]
 cluster_3 = df_clasificado.loc[df_clasificado['Clusters']==3]
 
-cluster_0['riesgo'] = np.where( (cluster_0['n_frec'] == 'alto') | (cluster_0['n_sis'] == 'alto') | (cluster_0['n_dis'] == 'alto'), 'Alto',
-                      np.where( (cluster_0['n_frec'] == 'medio') | (cluster_0['n_sis'] == 'medio') | (cluster_0['n_dis'] == 'medio'), 'Medio',
-                      'Normal') )
+print(cluster_0.columns)
 
-cluster_1['riesgo'] = np.where( (cluster_1['n_frec'] == 'alto') | (cluster_1['n_sis'] == 'alto') | (cluster_1['n_dis'] == 'alto'), 'Alto',
-                      np.where( (cluster_1['n_frec'] == 'medio') | (cluster_1['n_sis'] == 'medio') | (cluster_1['n_dis'] == 'medio'), 'Medio',
-                      'Normal') )
+cluster_0['riesgo'] = np.where( (cluster_0['n_frec'] == 'alto') | (cluster_0['n_sis'] == 'alto') | (cluster_0['n_dis'] == 'alto'), 'alto',
+                      np.where( (cluster_0['n_frec'] == 'medio') | (cluster_0['n_sis'] == 'medio') | (cluster_0['n_dis'] == 'medio'), 'medio',
+                      'normal') )
 
-cluster_2['riesgo'] = np.where( (cluster_2['n_frec'] == 'alto') | (cluster_2['n_sis'] == 'alto') | (cluster_2['n_dis'] == 'alto'), 'Alto',
-                      np.where( (cluster_2['n_frec'] == 'medio') | (cluster_2['n_sis'] == 'medio') | (cluster_2['n_dis'] == 'medio'), 'Medio',
-                      'Normal') )
+cluster_1['riesgo'] = np.where( (cluster_1['n_frec'] == 'alto') | (cluster_1['n_sis'] == 'alto') | (cluster_1['n_dis'] == 'alto'), 'alto',
+                      np.where( (cluster_1['n_frec'] == 'medio') | (cluster_1['n_sis'] == 'medio') | (cluster_1['n_dis'] == 'medio'), 'medio',
+                      'normal') )
 
-cluster_3['riesgo'] = np.where( (cluster_3['n_frec'] == 'alto') | (cluster_3['n_sis'] == 'alto') | (cluster_3['n_dis'] == 'alto'), 'Alto',
-                      np.where( (cluster_3['n_frec'] == 'medio') | (cluster_3['n_sis'] == 'medio') | (cluster_3['n_dis'] == 'medio'), 'Medio',
-                      'Normal') )
+cluster_2['riesgo'] = np.where( (cluster_2['n_frec'] == 'alto') | (cluster_2['n_sis'] == 'alto') | (cluster_2['n_dis'] == 'alto'), 'alto',
+                      np.where( (cluster_2['n_frec'] == 'medio') | (cluster_2['n_sis'] == 'medio') | (cluster_2['n_dis'] == 'medio'), 'medio',
+                      'normal') )
+
+cluster_3['riesgo'] = np.where( (cluster_3['n_frec'] == 'alto') | (cluster_3['n_sis'] == 'alto') | (cluster_3['n_dis'] == 'alto'), 'alto',
+                      np.where( (cluster_3['n_frec'] == 'medio') | (cluster_3['n_sis'] == 'medio') | (cluster_3['n_dis'] == 'medio'), 'medio',
+                      'normal') )
 
 riesgo_cluster_0 = round(cluster_0['riesgo'].value_counts()/len(cluster_0)*100, 2)
 riesgo_cluster_1 = round(cluster_1['riesgo'].value_counts()/len(cluster_1)*100, 2)
 riesgo_cluster_2 = round(cluster_2['riesgo'].value_counts()/len(cluster_2)*100, 2)
 riesgo_cluster_3 = round(cluster_3['riesgo'].value_counts()/len(cluster_3)*100, 2)
 
+riesgo_fc_cluster_0 = round(cluster_0['n_frec'].value_counts()/len(cluster_0)*100, 2)
+print('riesgo_fc_cluster_0: ', riesgo_fc_cluster_0)
+riesgo_fc_cluster_1 = round(cluster_1['n_frec'].value_counts()/len(cluster_1)*100, 2)
+riesgo_fc_cluster_2 = round(cluster_2['n_frec'].value_counts()/len(cluster_2)*100, 2)
+riesgo_fc_cluster_3 = round(cluster_3['n_frec'].value_counts()/len(cluster_3)*100, 2)
 
+riesgo_sis_cluster_0 = round(cluster_0['n_sis'].value_counts()/len(cluster_0)*100, 2)
+riesgo_sis_cluster_1 = round(cluster_1['n_sis'].value_counts()/len(cluster_1)*100, 2)
+riesgo_sis_cluster_2 = round(cluster_2['n_sis'].value_counts()/len(cluster_2)*100, 2)
+riesgo_sis_cluster_3 = round(cluster_3['n_sis'].value_counts()/len(cluster_3)*100, 2)
+
+riesgo_dis_cluster_0 = round(cluster_0['n_dis'].value_counts()/len(cluster_0)*100, 2)
+riesgo_dis_cluster_1 = round(cluster_1['n_dis'].value_counts()/len(cluster_1)*100, 2)
+riesgo_dis_cluster_2 = round(cluster_2['n_dis'].value_counts()/len(cluster_2)*100, 2)
+riesgo_dis_cluster_3 = round(cluster_3['n_dis'].value_counts()/len(cluster_3)*100, 2)
+
+def data_row_riesgo_cluster(grupo, riesgo_cluster, tipo_porcentaje):
+    return {
+        "Grupo de Pacientes": grupo,
+        "Porcentaje "+ tipo_porcentaje+" de Riesgo Alto (%)": riesgo_cluster.get('alto', 0),
+        "Porcentaje "+ tipo_porcentaje+" de Riesgo Medio (%)": riesgo_cluster.get('medio', 0),
+        "Porcentaje "+ tipo_porcentaje+" de Valores Sin Riesgo (%)": riesgo_cluster.get('normal', 0)
+    }
 
 data_riesgo_cluster = [
-    {
-        "Grupo de Pacientes": "Grupo 1",
-        "Porcentaje Total de Riesgo Alto (%)": riesgo_cluster_0.get('Alto', 0),
-        "Porcentaje Total de Riesgo Medio (%)": riesgo_cluster_0.get('Medio', 0),
-        "Porcentaje Total de Valores Sin Riesgo (%)": riesgo_cluster_0.get('Normal', 0)
-    },
-    {
-        "Grupo de Pacientes": "Grupo 2",
-        "Porcentaje Total de Riesgo Alto (%)": riesgo_cluster_1.get('Alto', 0),
-        "Porcentaje Total de Riesgo Medio (%)": riesgo_cluster_1.get('Medio', 0),
-        "Porcentaje Total de Valores Sin Riesgo (%)": riesgo_cluster_1.get('Normal', 0)
-    },
-    {
-        "Grupo de Pacientes": "Grupo 3",
-        "Porcentaje Total de Riesgo Alto (%)": riesgo_cluster_2.get('Alto', 0),
-        "Porcentaje Total de Riesgo Medio (%)": riesgo_cluster_2.get('Medio', 0),
-        "Porcentaje Total de Valores Sin Riesgo (%)": riesgo_cluster_2.get('Normal', 0)
-    },
-    {
-        "Grupo de Pacientes": "Grupo 4",
-        "Porcentaje Total de Riesgo Alto (%)": riesgo_cluster_3.get('Alto', 0),
-        "Porcentaje Total de Riesgo Medio (%)": riesgo_cluster_3.get('Medio', 0),
-        "Porcentaje Total de Valores Sin Riesgo (%)": riesgo_cluster_3.get('Normal', 0)
-    }
+    data_row_riesgo_cluster('Grupo 1', riesgo_cluster_0, 'Total'),
+    data_row_riesgo_cluster('Grupo 2', riesgo_cluster_1, 'Total'),
+    data_row_riesgo_cluster('Grupo 3', riesgo_cluster_2, 'Total'),
+    data_row_riesgo_cluster('Grupo 4', riesgo_cluster_3, 'Total')
+]
+
+data_riesgo_fc_cluster = [
+    data_row_riesgo_cluster('Grupo 1', riesgo_fc_cluster_0, 'Frecuencia Cardiaca'),
+    data_row_riesgo_cluster('Grupo 2', riesgo_fc_cluster_1, 'Frecuencia Cardiaca'),
+    data_row_riesgo_cluster('Grupo 3', riesgo_fc_cluster_2, 'Frecuencia Cardiaca'),
+    data_row_riesgo_cluster('Grupo 4', riesgo_fc_cluster_3, 'Frecuencia Cardiaca')
+]
+
+data_riesgo_sis_cluster = [
+    data_row_riesgo_cluster('Grupo 1', riesgo_sis_cluster_0, 'Presión Sistólica'),
+    data_row_riesgo_cluster('Grupo 2', riesgo_sis_cluster_1, 'Presión Sistólica'),
+    data_row_riesgo_cluster('Grupo 3', riesgo_sis_cluster_2, 'Presión Sistólica'),
+    data_row_riesgo_cluster('Grupo 4', riesgo_sis_cluster_3, 'Presión Sistólica')
+]
+
+data_riesgo_dis_cluster = [
+    data_row_riesgo_cluster('Grupo 1', riesgo_dis_cluster_0, 'Presión Diastólica'),
+    data_row_riesgo_cluster('Grupo 2', riesgo_dis_cluster_1, 'Presión Diastólica'),
+    data_row_riesgo_cluster('Grupo 3', riesgo_dis_cluster_2, 'Presión Diastólica'),
+    data_row_riesgo_cluster('Grupo 4', riesgo_dis_cluster_3, 'Presión Diastólica')
 ]
 
 alert_colors =  {
@@ -109,7 +134,7 @@ def row_color(grupo, risk_grade):
         'column_id': ['Porcentaje de Riesgo Alto', 'Porcentaje de Riesgo Medio', 'Porcentaje de Valores Sin Riesgo']
     }
 
-data_conditional = [
+data_conditional_riesgo_total = [
     row_color('Grupo 1', 'medio'),
     cell_color('Grupo 1'),
     row_color('Grupo 2', 'normal'),
@@ -117,6 +142,40 @@ data_conditional = [
     row_color('Grupo 3', 'alto'),
     cell_color('Grupo 3'),
     row_color('Grupo 4', 'medio'),
+    cell_color('Grupo 4')
+]
+
+
+data_conditional_riesgo_fc = [
+    row_color('Grupo 1', 'medio'),
+    cell_color('Grupo 1'),
+    row_color('Grupo 2', 'medio'),
+    cell_color('Grupo 2'),
+    row_color('Grupo 3', 'medio'),
+    cell_color('Grupo 3'),
+    row_color('Grupo 4', 'medio'),
+    cell_color('Grupo 4')
+]
+
+data_conditional_riesgo_sis = [
+    row_color('Grupo 1', 'normal'),
+    cell_color('Grupo 1'),
+    row_color('Grupo 2', 'normal'),
+    cell_color('Grupo 2'),
+    row_color('Grupo 3', 'alto'),
+    cell_color('Grupo 3'),
+    row_color('Grupo 4', 'medio'),
+    cell_color('Grupo 4')
+]
+
+data_conditional_riesgo_dis = [
+    row_color('Grupo 1', 'medio'),
+    cell_color('Grupo 1'),
+    row_color('Grupo 2', 'normal'),
+    cell_color('Grupo 2'),
+    row_color('Grupo 3', 'alto'),
+    cell_color('Grupo 3'),
+    row_color('Grupo 4', 'normal'),
     cell_color('Grupo 4')
 ]
 
@@ -152,14 +211,14 @@ def layout_table(data, data_conditional):
                             'minWidth': '50px',  # Ancho mínimo de la celda
                             'width': '100px',  # Ancho predeterminado de la celda
                             'maxWidth': '200px',
-                            'height': '100px',  # Ancho máximo de la celda
+                            'height': '50px',  # Alto máximo de la celda
                             'whiteSpace': 'normal',  # Permitir saltos de línea
                         },
                         style_table={'overflowX': 'auto', 'width': '100%'},
                         style_data_conditional=data_conditional
                     ),
                 ]
-            )],width=8, style={'margin': '30px auto'} # Centrar la tabla y asignarle un ancho
+            )],width=12, style={'margin': '30px auto'} # Centrar la tabla y asignarle un ancho
         )
     )
 
@@ -180,5 +239,17 @@ def layout_analytics():
             
         ], width=4, style={'border': '1px solid black', 'padding': '20px 12px'})
     ], className="mb-3", style={"margin": "30px 10px"}),
-    layout_table(data_riesgo_cluster, data_conditional)
+    Row([
+        Col(
+            layout_table(data_riesgo_cluster, data_conditional_riesgo_total),
+        ),
+        Col([
+            layout_table(data_riesgo_fc_cluster, data_conditional_riesgo_fc),
+            layout_table(data_riesgo_sis_cluster, data_conditional_riesgo_sis),
+            layout_table(data_riesgo_dis_cluster, data_conditional_riesgo_dis)
+        ]
+        )
+    ]
+    )
+   
 ])
