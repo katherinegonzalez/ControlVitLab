@@ -374,7 +374,7 @@ def tabla_pacientes(cluster):
                     dash_table.DataTable(
                         id='datatable',
                         data=cluster,
-                        page_size=10,
+                        page_size=5,
                         columns=[
                             {'name': 'Nombre de Paciente', 'id': 'nombre'},
                             {'name': 'Identificación', 'id': 'identificacion'},
@@ -458,6 +458,25 @@ def calcular_prioridad(row):
     else:
         return 13
 
+def etiqueta_estado_civil(dato):
+    if dato == 'M':
+        return 'Casados'
+    elif dato == 'S':
+        return 'Solteros'
+    elif dato == 'W':
+        return 'Viudos'
+    elif dato == 'D':
+        return 'Divorciados'
+    else:
+        return ''
+
+def etiqueta_genero(dato):
+    if dato == 'M':
+        return 'Hombres'
+    elif dato == 'F':
+        return 'Mujeres'
+    else:
+        return 'Solteros'
 
 def update_graphs(selected_cluster):
     addRiesgoCluster()
@@ -506,16 +525,38 @@ def update_graphs(selected_cluster):
     # Establece el título
     fig_riesgo_dis.update_layout(title='<b style="color:black">Riesgo Presión Diastólica</b>')
 
+
     # Calcula el conteo de género
     genero_counts = filtered_cluster['sexo'].value_counts()
-    fig_genero = go.Figure(data=[go.Pie(labels=genero_counts.index, values=genero_counts.values)])
+   
+    dato_0_genero = genero_counts.index[0]
+    dato_1_genero= genero_counts.index[1]
+
+    etiquetas_genero = [
+        etiqueta_genero(dato_0_genero), 
+        etiqueta_genero(dato_1_genero)
+    ]
+    fig_genero = go.Figure(data=[go.Pie(labels=etiquetas_genero, values=genero_counts.values)])
     fig_genero.update_layout(title='<b style="color:black">Género</b>')
 
-     # Calcula el conteo de estado civil
+    # Calcula el conteo de estado civil
     estado_civil_counts = filtered_cluster['estado_civil'].value_counts()
-    fig_estado_civil = go.Figure(data=[go.Pie(labels=estado_civil_counts.index, values=estado_civil_counts.values)])
-    fig_estado_civil.update_layout(title='<b style="color:black">Estado Civil</b>')
+    # Accede a los datos en la posición 0 y 1 del índice
+    dato_0_estado_civil = estado_civil_counts.index[0]
+    dato_1_estado_civil = estado_civil_counts.index[1]
+    dato_2_estado_civil = estado_civil_counts.index[2]
+    dato_3_estado_civil = estado_civil_counts.index[3]
 
+    # Define las etiquetas personalizadas para el estado civil
+    etiquetas_estado_civil = [
+        etiqueta_estado_civil(dato_0_estado_civil), 
+        etiqueta_estado_civil(dato_1_estado_civil), 
+        etiqueta_estado_civil(dato_2_estado_civil), 
+        etiqueta_estado_civil(dato_3_estado_civil)
+    ]
+
+    fig_estado_civil = go.Figure(data=[go.Pie(labels=etiquetas_estado_civil, values=estado_civil_counts.values)])
+    fig_estado_civil.update_layout(title='<b style="color:black">Estado Civil</b>')
 
     sobre_peso = filtered_cluster[filtered_cluster['IMC'] > 25]
     peso_normal = filtered_cluster[(filtered_cluster['IMC'] >= 18.5) & (filtered_cluster['IMC'] <= 25)]
@@ -592,42 +633,50 @@ def update_graphs(selected_cluster):
     
     # Devuelve los gráficos como elementos HTML
     return [
-
-        Row([
-            Col([
-                dcc.Graph(figure=fig_riesgo_total)
-            ]),
-             Col([
-                dcc.Graph(figure=fig_riesgo_fc),
-            ])
-        ]),
          Row([
-            Col([
-                dcc.Graph(figure=fig_riesgo_sis)
-            ]),
-            Col([
-                dcc.Graph(figure=fig_riesgo_dis),
-            ])
+            html.H4(nombre_grupo, style={"margin": "30px 0", "fontWeight": "800"}) 
         ]),
-        Row([
-            Col([
-                dcc.Graph(figure=fig_genero)
-            ]),
-            Col([
-                dcc.Graph(figure=fig_estado_civil)
-            ])
-        ]),
-        Row([
-            Col([
-                dcc.Graph(figure=fig_imc)
-            ]),
-            Col([
-                dcc.Graph(figure=fig)
-            ])
-        ]),
-        Row([
-            html.H5('Información de Cada Paciente', style={"margin": "10px", "fontWeight": "800"}) 
-        ]),
+        dcc.Loading(
+                id="loading-1",
+                type="default",
+                children=[
+                     Row([
+                        Col([
+                            dcc.Graph(figure=fig_riesgo_total)
+                        ]),
+                        Col([
+                            dcc.Graph(figure=fig_riesgo_fc),
+                        ])
+                    ]),
+                    Row([
+                        Col([
+                            dcc.Graph(figure=fig_riesgo_sis)
+                        ]),
+                        Col([
+                            dcc.Graph(figure=fig_riesgo_dis),
+                        ])
+                    ]),
+                    Row([
+                        Col([
+                            dcc.Graph(figure=fig_genero)
+                        ]),
+                        Col([
+                            dcc.Graph(figure=fig_estado_civil)
+                        ])
+                    ]),
+                    Row([
+                        Col([
+                            dcc.Graph(figure=fig_imc)
+                        ]),
+                        Col([
+                            dcc.Graph(figure=fig)
+                        ])
+                    ]),
+                    Row([
+                        html.H5('Información de Cada Paciente', style={"margin": "10px", "fontWeight": "800"}) 
+                    ]),
+
+                ]),
         tabla_pacientes(filtered_cluster.to_dict('records'))
     ]
 
@@ -707,7 +756,7 @@ def layout_analytics():
     ], style={'border': '1px solid black', 'padding': '20px 12px', 'margin': '30px'}
     ),
      Row([
-        html.H4('Carateristicas de Grupos de Pacientes'),
+        html.H4('Caraterísticas de Grupos de Pacientes'),
         Col([
             layout_table(data_caracteristicas_cluster, data_conditional_caracteristicas, 'datatable_caracteristicas'),
         ]
@@ -715,7 +764,7 @@ def layout_analytics():
     ], style={'border': '1px solid black', 'padding': '20px 12px', 'margin': '30px'}
     ),
      Row([
-        html.H4('Carateristicas en cada uno de los Grupos de Pacientes'),
+        html.H4('Caraterísticas en cada uno de los Grupos de Pacientes', style={'marginBottom': '20px'}),
         dcc.Dropdown(
             id='cluster-dropdown',
             options=options,
