@@ -482,38 +482,39 @@ def update_graphs(selected_cluster):
     fig_riesgo_total = go.Figure(data=[go.Pie(labels=risgo_counts.index, values=risgo_counts.values)])
     fig_riesgo_total.update_traces(marker=dict(colors=[alert_colors[risgo] for risgo in risgo_counts.index]))
     # Establece el título
-    fig_riesgo_total.update_layout(title='Riesgo General')
+    
+    fig_riesgo_total.update_layout(title='<b style="color:black">Riesgo General</b>')
 
     # Calcula el conteo de riesgo de fc
     riesgo_fc_counts = filtered_cluster['n_frec'].value_counts()
     fig_riesgo_fc = go.Figure(data=[go.Pie(labels=riesgo_fc_counts.index, values=riesgo_fc_counts.values)])
     fig_riesgo_fc.update_traces(marker=dict(colors=[alert_colors[risgo] for risgo in riesgo_fc_counts.index]))
     # Establece el título
-    fig_riesgo_fc.update_layout(title='Riesgo Frecuencia Cardiaca')
+    fig_riesgo_fc.update_layout(title='<b style="color:black">Riesgo Frecuencia Cardiaca</b>')
 
     # Calcula el conteo de riesgo de sistólica
     riesgo_sis_counts = filtered_cluster['n_sis'].value_counts()
     fig_riesgo_sis = go.Figure(data=[go.Pie(labels=riesgo_sis_counts.index, values=riesgo_sis_counts.values)])
     fig_riesgo_sis.update_traces(marker=dict(colors=[alert_colors[risgo] for risgo in riesgo_sis_counts.index]))
     # Establece el título
-    fig_riesgo_sis.update_layout(title='Riesgo Presión Sistólica')
+    fig_riesgo_sis.update_layout(title='<b style="color:black">Riesgo Presión Sistólica</b>')
 
     # Calcula el conteo de riesgo de diastólica
     riesgo_dis_counts = filtered_cluster['n_dis'].value_counts()
     fig_riesgo_dis = go.Figure(data=[go.Pie(labels=riesgo_dis_counts.index, values=riesgo_dis_counts.values)])
     fig_riesgo_dis.update_traces(marker=dict(colors=[alert_colors[risgo] for risgo in riesgo_dis_counts.index]))
     # Establece el título
-    fig_riesgo_dis.update_layout(title='Riesgo Presión Diastólica')
+    fig_riesgo_dis.update_layout(title='<b style="color:black">Riesgo Presión Diastólica</b>')
 
     # Calcula el conteo de género
     genero_counts = filtered_cluster['sexo'].value_counts()
     fig_genero = go.Figure(data=[go.Pie(labels=genero_counts.index, values=genero_counts.values)])
-    fig_genero.update_layout(title='Género')
+    fig_genero.update_layout(title='<b style="color:black">Género</b>')
 
      # Calcula el conteo de estado civil
     estado_civil_counts = filtered_cluster['estado_civil'].value_counts()
     fig_estado_civil = go.Figure(data=[go.Pie(labels=estado_civil_counts.index, values=estado_civil_counts.values)])
-    fig_estado_civil.update_layout(title='Estado Civil')
+    fig_estado_civil.update_layout(title='<b style="color:black">Estado Civil</b>')
 
 
     sobre_peso = filtered_cluster[filtered_cluster['IMC'] > 25]
@@ -559,7 +560,7 @@ def update_graphs(selected_cluster):
     data = {'Categoría': categorias, 'Conteo': conteos}
 
     # Crea el gráfico de torta
-    fig_imc = px.pie(data, names='Categoría', values='Conteo', title='Distribución de IMC',
+    fig_imc = px.pie(data, names='Categoría', values='Conteo', title='<b style="color:black">Distribución de IMC</b>',
                 color_discrete_map=color_map)
 
 
@@ -575,9 +576,9 @@ def update_graphs(selected_cluster):
     
     # Personaliza el diseño del gráfico
     fig.update_layout(
-        title='Distribución de Edades',
+        title='<b style="color:black">Distribución de Edades</b>',
         xaxis_title='Rango de Edades',
-        yaxis_title='Conteo',
+        yaxis_title='Número de Pacientes',
         template='plotly_white'  # Estilo del gráfico
     )
    
@@ -624,10 +625,11 @@ def update_graphs(selected_cluster):
                 dcc.Graph(figure=fig)
             ])
         ]),
+        Row([
+            html.H5('Información de Cada Paciente', style={"margin": "10px", "fontWeight": "800"}) 
+        ]),
         tabla_pacientes(filtered_cluster.to_dict('records'))
     ]
-
-
 
 def layout_table(data, data_conditional, id):
     return Row(
@@ -674,11 +676,11 @@ def layout_table(data, data_conditional, id):
 
 def layout_analytics():
     return html.Div([
-    html.H3('Analítica de Pacientes', style={"margin": "30px 10px"}),
-    html.P('Se han clasificado 4 grupos de pacientes acuerdo a los patrones encontrados en todos ellos', style={"margin": "30px 10px"}),
+    html.H3('Analítica de Pacientes', style={"margin": "30px"}),
+    html.P('En este Dashboard se encuentran 4 grupos de pacientes que han sido clasificados de acuerdo a los patrones entre ellos', style={"margin": "30px"}),
    
     Row([
-        html.H4('Comparación de Riesgo en Grupos de Pacientes'),
+        html.H4('Riesgo en Grupos de Pacientes'),
         Col([
             layout_table(data_riesgo_cluster, data_conditional_riesgo_total, 'datatable_riesgo_total'),
              Row([
@@ -705,7 +707,7 @@ def layout_analytics():
     ], style={'border': '1px solid black', 'padding': '20px 12px', 'margin': '30px'}
     ),
      Row([
-        html.H4('Comparación de Carateristicas de Grupos de Pacientes'),
+        html.H4('Carateristicas de Grupos de Pacientes'),
         Col([
             layout_table(data_caracteristicas_cluster, data_conditional_caracteristicas, 'datatable_caracteristicas'),
         ]
@@ -713,7 +715,7 @@ def layout_analytics():
     ], style={'border': '1px solid black', 'padding': '20px 12px', 'margin': '30px'}
     ),
      Row([
-        html.H4('Carateristicas en cada Grupos de Pacientes'),
+        html.H4('Carateristicas en cada uno de los Grupos de Pacientes'),
         dcc.Dropdown(
             id='cluster-dropdown',
             options=options,
@@ -722,5 +724,4 @@ def layout_analytics():
         html.Div(id='cluster-graphs')
     ], style={'border': '1px solid black', 'padding': '20px 12px', 'margin': '30px'}
     )
-   
 ])
