@@ -332,6 +332,16 @@ def cell_color_table(column_id, risk_type, risk_grade):
         'color': 'black' 
     }
 
+def cell_botton_table(column_id):
+    return {
+        'if': {
+            'column_id': column_id
+        },
+        'color': 'blue',  # Color del enlace
+        'textDecoration': 'underline',  # Subrayar el texto
+        'cursor': 'pointer'  # Cambiar el cursor al pasar el ratón
+    }
+
 data_conditional_table = [
         cell_color_table('frecuencia_cardiaca', 'n_frec','no_data'),
         cell_color_table('frecuencia_cardiaca', 'n_frec', 'normal'),
@@ -345,7 +355,8 @@ data_conditional_table = [
         cell_color_table('t_a_diastolica', 'n_dis', 'alto'),
         cell_color_table('riesgo', 'riesgo', 'normal'),
         cell_color_table('riesgo', 'riesgo', 'medio'),
-        cell_color_table('riesgo', 'riesgo', 'alto')
+        cell_color_table('riesgo', 'riesgo', 'alto'),
+        cell_botton_table('Action')
         #cell_color('Estado de IMC', 'Estado de IMC', 'Saludable'),
         #cell_color('Estado de IMC', 'Estado de IMC', 'Sobrepeso'),
         #cell_color('Estado de IMC', 'Estado de IMC', 'Obesidad'),
@@ -372,8 +383,8 @@ def tabla_pacientes(cluster):
                 type="default",
                 children=[
                     dash_table.DataTable(
-                        id='datatable',
-                        data=cluster,
+                        id='datatable_pacientes',
+                        data=cluster.to_dict('records'),
                         page_size=5,
                         columns=[
                             {'name': 'Nombre de Paciente', 'id': 'nombre'},
@@ -387,8 +398,9 @@ def tabla_pacientes(cluster):
                             {'name': 'Frecuencia Cardiaca BPM', 'id': 'frecuencia_cardiaca'},
                             {'name': 'Presión Sistólica mm[Hg]', 'id': 't_a_sistolica'},
                             {'name': 'Presión Diastólica mm[Hg]', 'id': 't_a_diastolica'},
-                            {'name': 'Riesgo', 'id': 'riesgo'}        
-                        ],
+                            {'name': 'Riesgo', 'id': 'riesgo'},
+                            {'name': 'Detalle', 'id': 'Action'}],
+                       
                         # style_data_conditional=data_conditional,
                         style_header={
                             'textAlign': 'center',  # Alinear texto a la izquierda
@@ -622,6 +634,11 @@ def update_graphs(selected_cluster):
         yaxis_title='Número de Pacientes',
         template='plotly_white'  # Estilo del gráfico
     )
+
+
+    # REVISAR: https://community.plotly.com/t/button-inside-a-dash-table/51460
+    # Modificar la columna 'Action_text' para incluir el valor de 'id_cia' como texto del botón
+    filtered_cluster['Action'] = 'Ver Detalles'
    
     filtered_cluster['Prioridad'] = filtered_cluster.apply(calcular_prioridad, axis=1)
 
@@ -630,7 +647,7 @@ def update_graphs(selected_cluster):
 
     # Eliminar la columna de prioridad
     filtered_cluster.drop(columns=['Prioridad'], inplace=True)
-    
+
     # Devuelve los gráficos como elementos HTML
     return [
          Row([
@@ -677,7 +694,7 @@ def update_graphs(selected_cluster):
                     ]),
 
                 ]),
-        tabla_pacientes(filtered_cluster.to_dict('records'))
+        tabla_pacientes(filtered_cluster)
     ]
 
 def layout_table(data, data_conditional, id):
@@ -730,6 +747,7 @@ def layout_analytics():
    
     Row([
         html.H4('Riesgo en Grupos de Pacientes'),
+        html.Div(id="output"),
         Col([
             layout_table(data_riesgo_cluster, data_conditional_riesgo_total, 'datatable_riesgo_total'),
              Row([

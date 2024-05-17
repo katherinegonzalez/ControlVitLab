@@ -9,6 +9,8 @@ from dashboard_analytics import layout_analytics, update_graphs
 from bd_conf import conn
 import pandas as pd
 import sys
+from urllib.parse import parse_qs, urlparse
+
 print(sys.executable)
 
 # Utilizando Bootstrap para obtener estilos predefinidos
@@ -58,6 +60,8 @@ def display_page(pathname):
         return layout_dashboard1()
     elif pathname == '/dashboard2':
         return layout_dashboard_patient()
+    elif '/dashboard2' in pathname:
+        return layout_dashboard_patient()
     elif pathname == '/dashboard-analitica':
         return layout_analytics()
     else:
@@ -69,11 +73,48 @@ try:
     # Callback para cargar los nombres e identificaciones de los pacientes en el dropdown
     @app.callback(
         Output('search-input', 'options'),
-        [Input('search-input', 'search_value')]
+        [Input('search-input', 'search_value')],
     )
     def update_search_options_callback(search_value):
         return update_search_options()
     
+    @app.callback(
+        Output('search-input', 'value'),
+        [Input('url', 'pathname'),
+        Input('url', 'search')]
+    )
+    def update_dropdown_value(pathname, search):
+        if search:
+            # Parse the URL query parameters
+            query_params = parse_qs(urlparse(search).query)
+            patient_id = query_params.get('patient', [None])[0]
+            if patient_id:
+                return patient_id
+        elif 'patient' in pathname:
+            patient_id = pathname.split('patient=')[1]
+            if patient_id:
+                return patient_id
+
+        return dash.no_update
+    
+    @app.callback(
+        Output('search-button', 'n_clicks'),
+        [Input('url', 'pathname'),
+        Input('url', 'search')]
+    )
+    def simular_clic(pathname, search):
+        if search:
+            # Parse the URL query parameters
+            query_params = parse_qs(urlparse(search).query)
+            patient_id = query_params.get('patient', [None])[0]
+            if patient_id:
+                return 1
+        elif 'patient' in pathname:
+            patient_id = pathname.split('patient=')[1]
+            if patient_id:
+                return 1
+        return 0
+ 
     # Callback para actualizar los datos de la tabla basados en la búsqueda
     @app.callback(
         Output('datatable', 'data'),
@@ -216,7 +257,24 @@ try:
     )
     def update_graphs_callback(selected_cluster, table_data):
         return update_graphs(selected_cluster)
+    
+    @app.callback(
+        Output("url", "pathname"),
+        Input("datatable_pacientes", "active_cell"),
+        State("datatable_pacientes", "derived_viewport_data"),
+    )
+    def cell_clicked(cell, data):
+        print('cell', cell)
+        if cell:
+            selected = data[cell["row"]][cell["column_id"]]
+            print('selected: ', selected)
+            id= data [cell["row"]]['id_cia']
+            print(id)
 
+            return f"/dashboard2?patient={id}"
+            
+        else:
+           return dash.no_update
 
     
 except Exception as e:
