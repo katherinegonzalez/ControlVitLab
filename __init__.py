@@ -5,7 +5,7 @@ from dash.dependencies import Input, Output, State
 import dash_bootstrap_components as dbc
 from dashboard_all_patients import layout_dashboard1
 from dashboard_patient import layout_dashboard_patient, update_table, update_gauge_heart_rate, update_gauge_diastolic, update_gauge_sistolic, update_search_options, showOrHideFigures, update_time_series_plot_frecuencia_cardiaca, update_time_series_plot_sistolica, update_time_series_plot_diastolica, get_available_dates
-from dashboard_analytics import layout_analytics
+from dashboard_analytics import layout_analytics, update_graphs
 from bd_conf import conn
 import pandas as pd
 import sys
@@ -206,6 +206,17 @@ try:
         return showOrHideFigures(table_data)
     
     # Condicional para Layaout:
+
+
+    # Callback para actualizar los gráficos según la selección del usuario
+    @app.callback(
+        Output('cluster-graphs', 'children'),
+        [Input('cluster-dropdown', 'value')],
+        [Input('datatable_riesgo_total', 'data')]
+    )
+    def update_graphs_callback(selected_cluster, table_data):
+        return update_graphs(selected_cluster)
+
 
     
 except Exception as e:
