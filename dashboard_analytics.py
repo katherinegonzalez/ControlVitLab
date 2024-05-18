@@ -743,7 +743,7 @@ def layout_table(data, data_conditional, id):
 def layout_analytics():
     return html.Div([
     html.H3('Analítica de Pacientes', style={"margin": "30px"}),
-    html.P('En este Dashboard se encuentran 4 grupos de pacientes que han sido clasificados de acuerdo a los patrones entre ellos', style={"margin": "30px"}),
+    html.P('En este panel, encontrarás cuatro grupos de pacientes clasificados según sus patrones de salud. Esto te permitirá tener una visión clara y ordenada de los diferentes perfiles de pacientes.', style={"margin": "30px"}),
    
     Row([
         html.H4('Riesgo en Grupos de Pacientes'),

@@ -28,6 +28,38 @@ options = [
     {'label': 'Mensual', 'value': 'mensual'}
 ]
 
+alert_colors =  {
+    'normal': '#81c784',
+    'alto': '#ff00008c',
+    'medio': '#ffa50085',
+    'no_data': '#b5b5b5'
+}
+
+def cell_color(column_id, risk_type, risk_grade):
+    print('risk_grade: ', risk_grade)
+    risk_grade_color = ('normal' if risk_grade == 'Saludable' 
+        else 'medio' if risk_grade == 'Sobrepeso' 
+        else 'alto' if risk_grade == 'Obesidad' 
+        else str(risk_grade).lower())
+    return {
+        'if': {
+            'column_id': column_id,
+            'filter_query': '{'+risk_type+'} contains "'+risk_grade+'"'
+        },
+        'backgroundColor': alert_colors[risk_grade_color], 
+        'color': 'black' 
+    }
+
+
+data_conditional = [
+    cell_color('Estado de IMC', 'Estado de IMC', 'Saludable'),
+    cell_color('Estado de IMC', 'Estado de IMC', 'Sobrepeso'),
+    cell_color('Estado de IMC', 'Estado de IMC', 'Obesidad'),
+    cell_color('IMC', 'Estado de IMC', 'Saludable'),
+    cell_color('IMC', 'Estado de IMC', 'Sobrepeso'),
+    cell_color('IMC', 'Estado de IMC', 'Obesidad')
+]
+
 # util functions
 
 def showOrHideFigures(data):
@@ -234,7 +266,7 @@ def update_search_options():
         return []
     finally:
         cursor.close()
-
+        
 def update_table(n_clicks, search_value):
     global heart_rate
     global p_sistolic
@@ -563,25 +595,11 @@ def update_time_series_plot_diastolica(n_clicks, type_value, start_date, end_dat
 
 
 def layout_dashboard_patient(): 
-
-    data_conditional = [
-        {
-            'if': {'column_id': 'Estado de IMC', 'filter_query': '{Estado de IMC} = "Saludable"'},
-            'color': 'green'  # Color verde para estado saludable
-        },
-        {
-            'if': {'column_id': 'Estado de IMC', 'filter_query': '{Estado de IMC} = "Sobrepeso"'},
-            'color': 'orange'  # Color naranja para sobrepeso
-        },
-        {
-            'if': {'column_id': 'Estado de IMC', 'filter_query': '{Estado de IMC} = "Obesidad"'},
-            'color': 'red'  # Color rojo para obesidad
-        }]
     
     # Define los colores y su significado
     color_info = [
         {'color': 'red', 'text': 'Riesgo Alto'},
-        {'color': 'green', 'text': 'Normal'},
+        {'color': 'green', 'text': 'Sin Riesgo'},
         {'color': 'orange', 'text': 'Riesgo Medio'}
     ]
 

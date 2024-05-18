@@ -46,21 +46,31 @@ def display_page(pathname):
     if pathname == '/':
         return html.Div([
             html.Div([
-                html.H1("Bienvenido a ControlVit Lab", style={'margin-bottom': '20px'}),
-                html.H4("Aquí podrás visualizar tableros para los pacientes."),
-                html.H4("Selecciona cualquiera de las dos opciones."),
+                html.H1("¡Bienvenidos a ControlVit Lab!", style={'margin-bottom': '30px'}),
+                html.H4("En esta plataforma, podrás acceder a tableros con información detallada sobre los pacientes."),
+                html.H4("Elige una de las siguientes opciones para comenzar:"),
             ], style={'textAlign': 'center', 'margin': '50px'}),
             # Botones para los dashboards
             dbc.Row([
-                dbc.Col(dbc.Button("Búsqueda por Paciente", color="primary", href="/dashboard2")),
-                dbc.Col(dbc.Button("Ver Todos los Pacientes", color="primary", href="/dashboard1")),
+                dbc.Col([
+                    dbc.Button("Búsqueda por Paciente", color="primary", href="/dashboard-paciente", style={'marginBottom': '20px'}),
+                    html.P("Encuentra información específica sobre un paciente.")
+                ]),
+                dbc.Col([
+                    dbc.Button("Ver Pacientes y Alertas", color="primary", href="/dashboard-alertas", style={'marginBottom': '20px'}),
+                    html.P("Revisa el estado y las alertas de todos los pacientes.")
+                ]),
+                dbc.Col([
+                    dbc.Button("Análisis de Datos de Pacientes", color="primary", href="/dashboard-analitica", style={'marginBottom': '20px'}),
+                    html.P("Explora y analiza los datos de los pacientes para obtener información valiosa.")
+                ])
             ], style={'margin': 'auto', 'width': '50%', 'textAlign': 'center', 'marginTop': '50px'}),
         ])
-    if pathname == '/dashboard1':
+    if pathname == '/dashboard-alertas':
         return layout_dashboard1()
-    elif pathname == '/dashboard2':
+    elif pathname == '/dashboard-paciente':
         return layout_dashboard_patient()
-    elif '/dashboard2' in pathname:
+    elif '/dashboard-paciente' in pathname:
         return layout_dashboard_patient()
     elif pathname == '/dashboard-analitica':
         return layout_analytics()
@@ -266,21 +276,22 @@ try:
     def cell_clicked(cell, data):
         print('cell', cell)
         if cell:
+            print('data', data[cell["row"]])
             selected = data[cell["row"]][cell["column_id"]]
             print('selected: ', selected)
             id= data [cell["row"]]['id_cia']
             print(id)
 
-            return f"/dashboard2?patient={id}"
+            return f"/dashboard-paciente?patient={id}"
             
         else:
            return dash.no_update
+        
 
-    
 except Exception as e:
         print('Error: ', e)
 
 
 
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run_server(debug=False)

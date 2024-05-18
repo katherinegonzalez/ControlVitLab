@@ -54,6 +54,16 @@ def cell_color(column_id, risk_type, risk_grade):
         'color': 'black' 
     }
 
+def cell_botton_table(column_id):
+    return {
+        'if': {
+            'column_id': column_id
+        },
+        'color': 'blue',  # Color del enlace
+        'textDecoration': 'underline',  # Subrayar el texto
+        'cursor': 'pointer'  # Cambiar el cursor al pasar el ratón
+    }
+
 data_conditional = [
         cell_color('Frecuencia Cardiaca BPM', 'Riesgo FC', 'no_data'),
         cell_color('Frecuencia Cardiaca BPM', 'Riesgo FC', 'normal'),
@@ -68,6 +78,7 @@ data_conditional = [
         cell_color('Riesgo', 'Riesgo', 'Normal'),
         cell_color('Riesgo', 'Riesgo', 'Medio'),
         cell_color('Riesgo', 'Riesgo', 'Alto'),
+        cell_botton_table('Action')
         #cell_color('Estado de IMC', 'Estado de IMC', 'Saludable'),
         #cell_color('Estado de IMC', 'Estado de IMC', 'Sobrepeso'),
         #cell_color('Estado de IMC', 'Estado de IMC', 'Obesidad'),
@@ -176,6 +187,7 @@ def get_patients_risk(resultados_sql):
         except Exception as e:
             print('Error en prediccion: ', e)
 
+    resultados_sql['Action'] = 'Ver Detalles'
     # Para reorganizar el DataFrame según los niveles de riesgo
     # Crear la columna de prioridad
     resultados_sql['Prioridad'] = resultados_sql.apply(calcular_prioridad, axis=1)
@@ -197,6 +209,7 @@ def get_all_patients_last_report():
         cursor = conn.cursor()
         sql_query_search = ("""
             SELECT 
+                pv.id_cia,            
                 DATE_FORMAT(pv.fecha, '%Y-%m-%d') AS 'Fecha de Diagnóstico', 
                 pv.nombre AS 'Nombre de Paciente', 
                 pv.identificacion AS 'Identificación', 
@@ -245,7 +258,7 @@ def get_all_patients_last_report():
 
 def layout_dashboard1():
     return html.Div([
-    html.H3('Reporte de Registro Actual de Pacientes', style={"margin": "30px 10px"}),
+    html.H3('Reporte de Pacientes y Alertas Destacadas', style={"margin": "30px 10px"}),
     Row([
         Col([
             Row([
@@ -266,7 +279,7 @@ def layout_dashboard1():
                 type="default",
                 children=[
                     dash_table.DataTable(
-                        id='datatable',
+                        id='datatable_pacientes',
                         data=get_all_patients_last_report(),
                         page_size=20,
                         columns=[
@@ -282,7 +295,8 @@ def layout_dashboard1():
                             {'name': 'Frecuencia Cardiaca BPM', 'id': 'Frecuencia Cardiaca BPM'},
                             {'name': 'Presión Sistólica mm[Hg]', 'id': 'Presión Sistólica mm[Hg]'},
                             {'name': 'Presión Diastólica mm[Hg]', 'id': 'Presión Diastólica mm[Hg]'},
-                            {'name': 'Riesgo', 'id': 'Riesgo'}        
+                            {'name': 'Riesgo', 'id': 'Riesgo'},
+                            {'name': 'Detalle', 'id': 'Action'}        
                         ],
                         style_data_conditional=data_conditional,
                         style_header={
