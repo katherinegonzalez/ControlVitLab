@@ -7,7 +7,7 @@ project_id = 'vernal-day-418920'
 instance_connection_name = 'vernal-day-418920:us-central1:tesismsyc'
 database_name = 'pacientes'
 db_user = 'katherine'
-db_password = 'mysql123*'
+db_password = ''
 
 instance_ip = '34.172.195.129'
 instance_port = '3306'
