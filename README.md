@@ -69,7 +69,7 @@ instance_port = '3306'
 
 ## Github repository 📦
 
-[GithubPapApp](https://github.com/katherinegonzalez/ClasificadorTizonTemprano)
+[Github ControlVit Lab](https://github.com/katherinegonzalez/ClasificadorTizonTemprano)
 
 ## Autora 😊
 
