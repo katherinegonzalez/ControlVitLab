@@ -45,16 +45,16 @@ Para instalar y configurar el proyecto en tu ambiente local, sigue los siguiente
 Para ejecutar el proyecto en tu ambiente local:
 
 1. Ve al archivo bd_conf.py
-2. Modifca todos los datos de conexón a la base de datos para que la aplicacón se conecte a la tuya:
+2. Modifca todos los datos de conexión a la base de datos para que la aplicación se conecte a la tuya:
 
-project_id = ''
-instance_connection_name = ''
-database_name = 'pacientes'
-db_user = ''
-db_password = ''
-
-instance_ip = ''
-instance_port = '3306'
+project_id = ''  
+instance_connection_name = ''  
+database_name = 'pacientes'  
+db_user = ''  
+db_password = ''  
+  
+instance_ip = ''  
+instance_port = '3306'  
 
 2. Ve al terminal, en la raíz del proyecto.
 2. Ejecuta el comando `python3 __init__.py`, de esta manera se ejecuta el servidor en nuestro ambiente local, generalmente en el puerto `8050` - `http://127.0.0.1:8050/`
